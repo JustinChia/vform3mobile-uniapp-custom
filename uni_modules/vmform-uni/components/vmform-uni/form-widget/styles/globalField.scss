@@ -1,0 +1,7 @@
+@import './variables.scss';
+/* #ifndef VUE3 */
+@import './globalField_vue2.scss';
+/* #endif */
+/* #ifdef VUE3 */
+@import './globalField_vue3.scss';
+/* #endif */

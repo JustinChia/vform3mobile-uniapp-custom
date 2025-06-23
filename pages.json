@@ -1,0 +1,73 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "vform mobile"
+      }
+    },
+    {
+      "path": "pages/demo/vformRender/props",
+      "style": {
+        "navigationBarTitleText": "渲染器属性"
+      }
+    },
+    {
+      "path": "pages/demo/vformRender/formEvents",
+      "style": {
+        "navigationBarTitleText": "表单事件"
+      }
+    },
+    {
+      "path": "pages/demo/vformRender/formActions",
+      "style": {
+        "navigationBarTitleText": "表单操作"
+      }
+    },
+    {
+      "path": "pages/demo/containers/index",
+      "style": {
+        "navigationBarTitleText": "容器组件"
+      }
+    },
+	{
+      "path": "pages/demo/widgets/index",
+      "style": {
+        "navigationBarTitleText": "表单组件"
+      }
+    },
+    {
+      "path": "pages/index/debug",
+      "style": {
+        "navigationBarTitleText": "debug"
+      }
+    },
+    {
+      "path": "pages/demo/json/index",
+      "style": {
+        "navigationBarTitleText": "自定义"
+      }
+    },
+    {
+      "path": "pages/demo/template/index",
+      "style": {
+        "navigationBarTitleText": "示例"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "vform mobile demo",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8",
+    "usingComponents": {}
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "m-(.*)-item": "@/uni_modules/vmform-uni/components/vmform-uni/form-widget/container-widget/m-$1-item.vue",
+      "m-(.*)-widget": "@/uni_modules/vmform-uni/components/vmform-uni/form-widget/field-widget/m-$1-widget.vue"
+    }
+  },
+  "uniIdRouter": {}
+}

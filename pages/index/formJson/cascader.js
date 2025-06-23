@@ -1,0 +1,66 @@
+export default {
+  type: 'm-cascader',
+  icon: 'cascader-field',
+  formItemFlag: true,
+  options: {
+    name: 'mcascader65951',
+    label: 'm-cascader',
+    labelAlign: '',
+    defaultValue: [],
+    placeholder: '',
+    size: '',
+    labelWidth: null,
+    labelHidden: false,
+    readonly: false,
+    disabled: false,
+    hidden: false,
+    clearable: true,
+    dsEnabled: false,
+    dsName: '',
+    labelKey: 'label',
+    valueKey: 'value',
+    childrenKey: 'children',
+    optionItems: [
+      {
+        label: 'select 1',
+        value: 1,
+        children: [
+          {
+            label: 'child 1-1',
+            value: 11,
+            children: [
+              {
+                label: 'child 1-1-1',
+                value: 111,
+              },
+              {
+                label: 'child 1-1-2',
+                value: 112,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        label: 'select 2',
+        value: 2,
+      },
+      {
+        label: 'select 3',
+        value: 3,
+      },
+    ],
+    required: true,
+    requiredHint: '',
+    customRule: '',
+    customRuleHint: '',
+    customClass: '',
+    labelIconPosition: 'rear',
+    labelTooltip: null,
+    onCreated: '',
+    onMounted: '',
+    onChange: '',
+    onValidate: '',
+  },
+  id: 'mcascader65951',
+}

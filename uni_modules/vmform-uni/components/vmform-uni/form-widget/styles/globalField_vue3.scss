@@ -1,0 +1,185 @@
+@import './variables.scss';
+.render-vmform :deep(.fieldReadonly) {
+  .uni-easyinput__content,
+  .uni-select--disabled {
+    background-color: white !important;
+    color: $readonly-color !important;
+  }
+
+  .switch-wrapper,
+  .slider-wrapper,
+  .uni-switch-input,
+  .uni-rate,
+  .uni-slider-tap-area {
+    opacity: 0.4;
+  }
+
+  .uni-input-input,
+  .uni-textarea-textarea,
+  .uni-select__input-text,
+  .uni-numbox__value,
+  .uni-data-tree,
+  .uni-data-tree .input-value .text-color {
+    color: $readonly-color !important;
+  }
+}
+
+.render-vmform :deep(.fieldDisabled) {
+  .uni-easyinput__content,
+  .uni-select--disabled {
+    background-color: $field-disable-background !important;
+    color: $readonly-color !important;
+  }
+
+  .switch-wrapper,
+  .slider-wrapper,
+  .uni-switch-input,
+  .uni-rate,
+  .uni-slider-tap-area {
+    opacity: 0.3;
+  }
+
+  .uni-input-input,
+  .uni-textarea-textarea,
+  .uni-select__input-text,
+  .uni-numbox__value,
+  .uni-data-tree,
+  .uni-data-tree .input-value .text-color {
+    color: $readonly-color !important;
+  }
+}
+
+// 防止选择类字段中的uni-easyinput组件捕获事件，否则就无法弹出了
+// vue3版存在这个问题
+.render-vmform {
+  .m-calendar,
+  .m-date,
+  .m-datetime,
+  .m-time,
+  .m-date-range {
+    :deep(.uni-easyinput) {
+      pointer-events: none;
+    }
+  }
+}
+.render-vmform {
+  // 去边框
+  :deep(.uni-forms-item__content) .no-border {
+    .uni-select {
+      border: none 0px !important;
+    }
+  }
+
+  :deep(.uni-data-checklist),
+  :deep(.uni-easyinput__content-textarea),
+  :deep(.uni-numbox) {
+    padding-left: 10px;
+  }
+}
+
+:deep(.uni-forms-item__content) .is-focus .input-value-border,
+:deep(.uni-forms-item__content) .is-focus .uni-easyinput__content,
+:deep(.uni-forms-item__content) .is-focus .uni-numbox__value,
+:deep(.uni-forms-item__content) .is-focus .uni-select,
+:deep(.uni-forms-item__content) .is-focus .radio__inner,
+:deep(.uni-forms-item__content) .is-focus .checkbox__inner,
+:deep(.uni-forms-item__content) .is-focus .uni-switch-input,
+:deep(.uni-forms-item__content) .is-focus .uni-date-editor--x,
+:deep(.uni-forms-item__content) .is-focus .fj-touch-left,
+:deep(.uni-forms-item__content) .is-focus .fj-touch-right,
+:deep(.uni-forms-item__content) .is-focus .uni-slider-thumb {
+  border: solid 1px #2979ff !important;
+}
+
+.render-vmform.is-focus .uni-forms-item__label {
+  color: #2979ff !important;
+  height: auto;
+}
+
+.render-vmform .enable {
+  :deep(.uni-easyinput__content) {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+  }
+}
+
+.render-vmform :deep(.field) {
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+
+  .uni-icons {
+    font-family: uniicons;
+    text-decoration: none;
+    width: 40rpx;
+
+    color: rgb(192, 196, 204);
+    font-size: 24px;
+    height: 48rpx;
+    line-height: 48rpx;
+    z-index: 2;
+    flex-shrink: 0;
+    text-align: center;
+
+    &.uniui-clear:before {
+      content: '\e66d';
+    }
+    &.uniui-forward:before {
+      content: '\e6ba';
+    }
+  }
+  .content-clear-icon {
+    padding: 0 0px !important;
+  }
+  &.border {
+    border: solid 1px #e5e5e5;
+    .uni-icons {
+      margin-right: 10rpx;
+      margin-left: 10rpx;
+    }
+  }
+
+  .uni-easyinput__content-input {
+    padding-right: 0rpx !important;
+  }
+}
+.render-vmform :deep(.uni-forms-item__label) {
+  padding: 0px !important;
+}
+
+// 输入内容的对齐
+
+.render-vmform :deep(.input-align-left) {
+  justify-content: flex-start;
+  input,
+  textarea,
+  .checklist-group {
+    text-align: left;
+    justify-content: flex-start;
+  }
+}
+.render-vmform :deep(.input-align-right) {
+  justify-content: flex-end;
+  input,
+  textarea,
+  .checklist-group {
+    text-align: right;
+    justify-content: flex-end;
+  }
+}
+.render-vmform :deep(.input-align-center) {
+  justify-content: center;
+  input,
+  textarea,
+  .checklist-group {
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+.subform-title {
+  position: relative;
+  color:orange;
+  font-weight: bolder;
+}
+
