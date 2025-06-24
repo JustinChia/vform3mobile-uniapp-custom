@@ -3,7 +3,7 @@ import { $message } from '../../utils/message.js'
 
 import { useEmitter } from '../../utils/emitter'
 import { generateId, deepClone, getAllContainerWidgets, getAllFieldWidgets, traverseFieldWidgets, getDSByName, runDataSourceRequest, getFieldWidgetByName, insertCustomCssToHead, insertGlobalFunctionsToHtml, overwriteObj, traverseFieldWidgetsOfContainer } from '../../utils/util'
-import { containers, basicFields, advancedFields } from '../../../../widgetsConfig.js'
+import { containers, basicFields, advancedFields } from './widgetsConfig.js'
 
 export const useRender = ({ data, props, emit }) => {
   const refList = data.widgetRefList

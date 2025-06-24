@@ -4,7 +4,6 @@
       <button type="primary" size="mini" style="margin-right: 5px" @click="showInput(0)">输入表单</button>
       <button type="primary" size="mini" style="margin-right: 5px" @click="showInput(1)">输入简化表单</button>
     </view>
-
     <view class="formContainer">
       <view style="line-height: 70rpx">
         <button type="primary" size="mini" style="margin-right: 5px" @click="getFormJson">获取表单json</button>
@@ -42,14 +41,7 @@
         <!-- 确定和取消 放到一行 -->
         <view class="popup-btns">
           <button class="uni-btn" type="default" style="width: 50%; margin: 0px; font-size: 12px" @click="popup.close()">取消</button>
-          <button
-            class="uni-btn"
-            type="primary"
-            style="width: 50%; margin: 0px; font-size: 12px"
-            @click="confirm"
-          >
-            确定
-          </button>
+          <button class="uni-btn" type="primary" style="width: 50%; margin: 0px; font-size: 12px" @click="confirm">确定</button>
         </view>
       </view>
     </uni-popup>
@@ -69,7 +61,7 @@ import outputs from '../components/ouputs.vue'
 import { useVformRenderHooks } from '../vformRender/hooks/vformRenderHooks.js'
 
 // import formJsonDemo from "./formJson.js";
-import {widgetList,formConfig} from './formJson.js'
+import { widgetList, formConfig } from './formJson.js'
 const { log, output, clearOutput, vmFormRenderRef } = useVformRenderHooks()
 
 const data = {
@@ -86,9 +78,9 @@ const data = {
 }
 
 const popup = ref()
-const popupType= ref(0)
-const showInput = (type) => {
-  popupType.value=type;
+const popupType = ref(0)
+const showInput = type => {
+  popupType.value = type
   popup.value.open('top')
 }
 
@@ -100,15 +92,16 @@ uni.$off()
 const setFormJson = () => {
   try {
     // var formJson = nullue.value === 'object' ? inputValue.value : JSON.parse(inputValue.value)
-
-    var formJson = {formConfig,widgetList}
+    var formJson = {
+      formConfig,
+      widgetList,
+    }
     nextTick(() => {
       vmformRender.value.setFormJson(formJson)
       // setFormDataTest()
       vmformRender.value.addEC('externalObject', {
         foo: 'bar',
       })
-
       // formJson = typeof inputVal
     })
   } catch (error) {
@@ -117,6 +110,21 @@ const setFormJson = () => {
       icon: 'none',
     })
   }
+}
+
+const setMiniFormJson = () => {
+  var formJson = {
+    formConfig,
+    widgetList,
+  }
+  nextTick(() => {
+    vmformRender.value.setFormJson(formJson)
+    // setFormDataTest()
+    vmformRender.value.addEC('externalObject', {
+      foo: 'bar',
+    })
+    // formJson = typeof inputVal
+  })
 }
 nextTick(() => {
   // setFormJson()
@@ -131,7 +139,7 @@ const setFormDataTest = () => {
   }
   vmformRender.value.setFormData(formData)
 }
-const confirm = ()=>{
+const confirm = () => {
   if (popupType === 0) {
     setFormJson()
   } else if (popupType === 1) {
