@@ -70,6 +70,34 @@
         @props-changed="propsChangeHandler"
       />
     </template>
+    <template v-if="props.comp === 'm-size'">
+      <m-size-widget
+        :field="comprops.field"
+        :parent-widget="comprops.parentWidget"
+        :parent-list="comprops.parentList"
+        :index-of-parent-list="comprops.indexOfParentList"
+        :designer="comprops.designer"
+        :design-state="comprops.designState"
+        :sub-form-row-id="comprops.subFormRowId"
+        :sub-form-row-index="comprops.subFormRowIndex"
+        :sub-form-col-index="comprops.subFormColIndex"
+        @props-changed="propsChangeHandler"
+      />
+    </template>
+    <template v-if="props.comp === 'm-quote'">
+      <m-quote-widget
+        :field="comprops.field"
+        :parent-widget="comprops.parentWidget"
+        :parent-list="comprops.parentList"
+        :index-of-parent-list="comprops.indexOfParentList"
+        :designer="comprops.designer"
+        :design-state="comprops.designState"
+        :sub-form-row-id="comprops.subFormRowId"
+        :sub-form-row-index="comprops.subFormRowIndex"
+        :sub-form-col-index="comprops.subFormColIndex"
+        @props-changed="propsChangeHandler"
+      />
+    </template>
     <template v-if="props.comp === 'm-textarea'">
       <m-textarea-widget
         :field="comprops.field"
