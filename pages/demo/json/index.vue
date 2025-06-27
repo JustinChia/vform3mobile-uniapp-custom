@@ -61,7 +61,7 @@ import outputs from '../components/ouputs.vue'
 import { useVformRenderHooks } from '../vformRender/hooks/vformRenderHooks.js'
 
 // import formJsonDemo from "./formJson.js";
-import { widgetList, formConfig } from './formJson.js'
+import { widgetList, formConfig } from './demo2.js'
 const { log, output, clearOutput, vmFormRenderRef } = useVformRenderHooks()
 
 const data = {
@@ -117,8 +117,10 @@ const setMiniFormJson = () => {
     formConfig,
     widgetList,
   }
+
+
   nextTick(() => {
-    vmformRender.value.setFormJson(formJson)
+    vmformRender.value.setMiniFormJson(formJson)
     // setFormDataTest()
     vmformRender.value.addEC('externalObject', {
       foo: 'bar',
@@ -127,7 +129,7 @@ const setMiniFormJson = () => {
   })
 }
 nextTick(() => {
-  // setFormJson()
+  setFormJson()
 })
 
 const setFormDataTest = () => {
@@ -140,12 +142,12 @@ const setFormDataTest = () => {
   vmformRender.value.setFormData(formData)
 }
 const confirm = () => {
-  if (popupType === 0) {
+  if (popupType.value === 0) {
     setFormJson()
-  } else if (popupType === 1) {
+  } else if (popupType.value === 1) {
     setMiniFormJson()
   }
-  popup.close()
+  popup.value.close()
 }
 const hideGrid = () => {
   vmformRender.value.getWidgetRef('t_bjType').setValue(['1'])

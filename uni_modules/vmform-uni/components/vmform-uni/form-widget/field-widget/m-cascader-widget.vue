@@ -11,18 +11,74 @@
     :sub-form-col-index="subFormColIndex"
     :sub-form-row-id="subFormRowId"
   >
-    <view class="field cascader-wrapper" :class="[inputAlignClass, props.field.options.disabled ? 'disabled' : '']" @click="showPopup" :style="{ border: inputBorder ? 'solid 1px #E5E5E5' : 'none' }">
-      <view class="selected-list" v-if="!inputBorder">
-        <uni-tag :text="item" :inverted="true" v-for="item in displayArray" :key="item"></uni-tag>
-        <view v-if="displayArray.length == 0" class="placeholder">{{ props.field.options.placeholder }}</view>
-      </view>
-      <view class="selected-list" v-else>
-        <view v-if="displayArray.length > 0">{{ displayArray[0] }}</view>
-        <view v-else class="placeholder">{{ props.field.options.placeholder }}</view>
-      </view>
-      <text class="uni-icons uniui-clear content-clear-icon" @click.stop="clearTag" v-if="displayArray.length > 0 && field.options.clearable"> </text>
-      <text class="uni-icons uniui-forward content-clear-icon" v-if="displayArray.length == 0 && !inputBorder"></text>
-    </view>
+    <custom-picker
+      ref="fieldEditor"
+      v-model="data.fieldModel"
+      :options="currentOptions"
+      :disabled="props.field.options.disabled || props.field.options.readonly"
+      :placeholder="props.field.options.placeholder || '请选择'"
+      :title="props.field.options.title || props.field.options.label"
+      :multiple="props.field.options.multiple"
+      :field-names="cascaderFieldNames"
+      @change="handleCascaderChange"
+      class="cascader-wrapper"
+    >
+      <!-- 自定义显示内容 -->
+      <template #display="{ displayText }">
+        <view class="cascader-display" :class="[inputAlignClass]">
+          <view class="selected-list" v-if="!inputBorder">
+            <uni-tag :text="item" :inverted="true" v-for="item in displayArray" :key="item"></uni-tag>
+            <view v-if="displayArray.length == 0" class="placeholder">{{ props.field.options.placeholder }}</view>
+          </view>
+          <view class="selected-list" v-else>
+            <view v-if="displayArray.length > 0">{{ displayArray[0] }}</view>
+            <view v-else class="placeholder">{{ props.field.options.placeholder }}</view>
+          </view>
+          <text class="uni-icons uniui-clear content-clear-icon" @click.stop="clearTag" v-if="displayArray.length > 0 && field.options.clearable"> </text>
+          <text class="uni-icons uniui-forward content-clear-icon" v-if="displayArray.length == 0 && !inputBorder"></text>
+        </view>
+      </template>
+      
+      <!-- 自定义级联选择内容 -->
+      <template #content="{ options, selectedValues, onSelect }">
+        <view class="cascader-content">
+          <!-- 面包屑导航 -->
+          <view class="selected-items">
+            <view v-for="(item, index) in selectedPaths" :key="item.value" @click="changeSelectedPaths(item, index)">
+              {{ item[data.fieldNames.text] }}
+            </view>
+            <view v-if="selectedPaths.length == 0">请选择</view>
+          </view>
+          
+          <!-- 选项列表 -->
+          <scroll-view scroll-y class="cascader-option-list">
+            <view 
+              class="cascader-option-item" 
+              v-for="(item, index) in currentOptions" 
+              :key="item[data.fieldNames.value]"
+              @click="handleCascaderItemSelect(item)"
+              :class="{ 
+                selected: isChecked(item),
+                disabled: item.disabled 
+              }"
+            >
+              <checkbox 
+                v-if="props.field.options.multiple" 
+                :checked="isChecked(item)" 
+                :disabled="item.disabled"
+                @click.stop
+              />
+              <view class="cascader-option-label">
+                {{ item[data.fieldNames.text] }}
+              </view>
+              <view class="cascader-option-arrow" v-if="item[data.fieldNames.children]">
+                <text class="uni-icons uniui-right"></text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </template>
+    </custom-picker>
     <template #readmode>
       {{ displayArray }}
     </template>
@@ -76,6 +132,7 @@ import { computed, ref, reactive } from '../../utils/vueBuilder.js'
 import { useField } from './fieldMixin'
 
 import FormItemWrapper from './form-item-wrapper'
+import CustomPicker from './custom-picker.vue'
 
 const props = defineProps({
   field: {
@@ -224,6 +281,26 @@ const closePopup = () => {
 const selectedPaths = ref([])
 const selectedItems = ref([])
 const optionItems = ref(props.field.options.optionItems)
+const currentOptions = ref(props.field.options.optionItems)
+
+// 级联选择器的字段映射
+const cascaderFieldNames = computed(() => ({
+  label: data.fieldNames.text,
+  value: data.fieldNames.value,
+  children: data.fieldNames.children,
+  disabled: 'disabled'
+}))
+
+// 处理级联选择器变化
+const handleCascaderChange = (value) => {
+  data.fieldModel = value
+  methodObjs.handleChangeEvent(value)
+}
+
+// 处理级联选择项点击
+const handleCascaderItemSelect = (item) => {
+  handleCheckboxChange(item)
+}
 const handleCheckboxChange = item => {
   // 单选时，清空已选
   if (!props.field.options.multiple) {
@@ -272,6 +349,7 @@ const loadOptionItems = () => {
     }
   }
   optionItems.value = options
+  currentOptions.value = options
 }
 const isChecked = item => {
   return selectedItems.value.findIndex(arr => arr.includes(item.value)) >= 0
@@ -355,9 +433,118 @@ defineExpose(exposeObj)
     background-color: #f7f6f6;
   }
   .placeholder {
-    color: #c0c4cc;
-    font-size: 23rpx;
+    color: #999;
+    font-size: 14px;
   }
+
+  .content-clear-icon {
+    color: #c0c4cc;
+    font-size: 16px;
+  }
+}
+
+.cascader-wrapper {
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.cascader-display {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.cascader-content {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.selected-items {
+  display: flex;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #666;
+  gap: 10px;
+  align-items: center;
+  background-color: #f8f8f8;
+
+  view {
+    color: #007aff;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #e3f2fd;
+    font-size: 12px;
+
+    &:after {
+      content: ' > ';
+      color: #999;
+      margin-left: 5px;
+    }
+
+    &:last-child:after {
+      content: '';
+    }
+  }
+}
+
+.cascader-option-list {
+  flex: 1;
+  padding: 10px 0;
+}
+
+.cascader-option-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f5f5f5;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #f8f8f8;
+  }
+  
+  &.selected {
+    background-color: #e3f2fd;
+    
+    .cascader-option-label {
+      color: #007aff;
+      font-weight: 500;
+    }
+  }
+  
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.cascader-option-label {
+  flex: 1;
+  margin-left: 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.cascader-option-arrow {
+  color: #c0c4cc;
+  font-size: 14px;
 }
 
 .popup-content {

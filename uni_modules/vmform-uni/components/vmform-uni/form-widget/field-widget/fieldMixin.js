@@ -234,6 +234,11 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
       })
       return checkedItems ? checkedItems.map(item => item.label).join(',') : ''
     },
+    getSelectedOptionText: () => {
+      if (!props.field.options.optionItems || data.fieldModel === null) return ''
+      const selectedItem = props.field.options.optionItems.find(item => item.value === data.fieldModel)
+      return selectedItem ? selectedItem.label : ''
+    },
     switchDisplayValue: () => {
       return data.fieldModel === (props.field.options.activeValue || true) ? props.field.options.activeLabel || '是' : props.field.options.inactiveLabel || '否'
     },
@@ -855,6 +860,12 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
           value: item.value,
           text: item.label,
           disable: item.disabled,
+          tooltip: item.tooltip,
+          exampleImage: item.exampleImage,
+          additionalComponents: item.additionalComponents,
+          additionalComponentsMultiple: item.additionalComponentsMultiple,
+          maxAdditionalComponents: item.maxAdditionalComponents,
+          image:item.image
         }
       })
     },
@@ -1112,6 +1123,16 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
     },
     handleRadioSelectEvent(event) {
       const { value } = event.detail
+      methodObjs.handleChangeEvent(value)
+    },
+    handlePickerChangeEvent(event) {
+      const { value } = event.detail
+      const options = methodObjs.getOptions()
+      if (options && options[value]) {
+        methodObjs.handleChangeEvent(options[value].value)
+      }
+    },
+    handleCustomPickerChange(value) {
       methodObjs.handleChangeEvent(value)
     },
     handleCheckboxCheckedEvent(event) {

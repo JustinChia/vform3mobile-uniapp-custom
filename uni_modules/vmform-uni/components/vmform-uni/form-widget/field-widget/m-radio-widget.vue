@@ -1,40 +1,72 @@
 <template>
-  <form-item-wrapper ref="fieldWrapper" :field="field" :design-state="designState" :parent-widget="parentWidget" :parent-list="parentList" :index-of-parent-list="indexOfParentList" :sub-form-row-index="subFormRowIndex" :sub-form-col-index="subFormColIndex" :sub-form-row-id="subFormRowId">
+  <form-item-wrapper ref="fieldWrapper" :field="field" :design-state="designState" :parent-widget="parentWidget"
+    :parent-list="parentList" :index-of-parent-list="indexOfParentList" :sub-form-row-index="subFormRowIndex"
+    :sub-form-col-index="subFormColIndex" :sub-form-row-id="subFormRowId">
     <!-- 默认 default -->
     <view class="field" :class="[inputAlignClass]">
-      <uni-data-checkbox
-        v-show="field.options.optionItems.length > 0"
-        ref="fieldEditor"
-        v-model="data.fieldModel"
-        :mode="mode"
-        :localdata="methodObjs.getOptions()"
+      <!-- 新的自定义选择器 -->
+      <custom-picker v-show="field.options.optionItems.length > 0"
+        ref="customPicker" v-model="data.fieldModel" :options="methodObjs.getOptions()"
+        :disabled="methodObjs.fieldDisabled() || methodObjs.fieldReadonly()"
+        :placeholder="field.options.placeholder || '请选择'" :title="field.options.title || field.options.label"
+        :multiple="false" style="width:100%"
+        :field="field"
+        :class="{ fieldReadonly: methodObjs.fieldReadonly(), 'is-focus': methodObjs.isFocus() }"
+        @change="methodObjs.handleCustomPickerChange"
+        @show-image-preview="showImagePreview">
+        <!-- 自定义显示内容 -->
+        <template #display="{ displayText }">
+          <view class="radio-display">
+            {{ displayText || field.options.placeholder || '请选择' }}
+          </view>
+        </template>
+      </custom-picker>
+
+      <!-- 原有的uni-data-checkbox -->
+      <!-- <uni-data-checkbox v-else v-show="field.options.optionItems.length > 0" ref="fieldEditor"
+        v-model="data.fieldModel" :mode="mode" :localdata="methodObjs.getOptions()"
         :disabled="methodObjs.fieldDisabled() || methodObjs.fieldReadonly()"
         :class="{ fieldReadonly: methodObjs.fieldReadonly(), 'is-focus': methodObjs.isFocus() }"
-        @change="methodObjs.handleRadioSelectEvent"
-      />
+        @change="methodObjs.handleRadioSelectEvent" /> -->
     </view>
     <template #readmode>
       <view class="field readonly" :class="[inputAlignClass]">
         {{ methodObjs.optionItemDisplayValue() }}
       </view>
     </template>
+
+    <!-- 图片预览弹窗 -->
+    <view v-if="imagePreviewVisible" class="image-preview-modal" @click="closeImagePreview">
+      <!-- <view class="image-preview-content" @click.stop> -->
+        <image :src="previewImageUrl" mode="widthFix" style="height:80vw;border-radius:16rpx;" />
+        <view class="close-btn" @click="closeImagePreview">
+          <uni-icons type="closeempty" size="18" color="#FFFFFF"></uni-icons>
+        </view>
+      <!-- </view> -->
+    </view>
   </form-item-wrapper>
 </template>
 
 <script setup>
-import { computed } from '../../utils/vueBuilder.js'
+import { computed, ref, watch } from '../../utils/vueBuilder.js'
 import { useField } from './fieldMixin'
 
 import FormItemWrapper from './form-item-wrapper'
+import CustomPicker from './custom-picker.vue'
+import uniDataCheckbox from '@/uni_modules/uni-data-checkbox/components/uni-data-checkbox/uni-data-checkbox.vue'
+
+// 状态管理
+const imagePreviewVisible = ref(false)
+const previewImageUrl = ref('')
 
 const props = defineProps({
   field: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   parentWidget: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   parentList: {
     type: Array,
@@ -46,7 +78,7 @@ const props = defineProps({
   },
   designer: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   designState: {
     type: Boolean,
@@ -83,11 +115,30 @@ const mode = computed(() => {
 
 methodObjs.initOptionItems()
 
+// 处理示例图预览
+const showImagePreview = (imageUrl) => {
+  previewImageUrl.value = imageUrl
+  imagePreviewVisible.value = true
+}
+
+watch(()=>data.fieldModel,(newVal,oldVal)=>{
+  console.error('fieldModel变更',newVal,oldVal)
+})
+
+
+// 关闭图片预览
+const closeImagePreview = () => {
+  imagePreviewVisible.value = false
+  previewImageUrl.value = ''
+}
+
+
+
 var exposeObj = {}
 // #ifdef VUE3
 exposeObj = {
   ...data,
-  ...methodObjs,
+  ...methodObjs
 }
 // #endif
 defineExpose(exposeObj)
@@ -100,4 +151,56 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.radio-display {
+  padding: 10px;
+  padding-right: 0px;
+  border: 0px none;
+  box-sizing: border-box;
+  background-color: #fff;
+  color: #333;
+  min-height: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 24rpx;
+  width: 100%;
+}
+
+.fieldReadonly .radio-display {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.is-focus .radio-display {
+  border-color: #007aff;
+}
+
+.image-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  width: 30px;
+  height: 30px;
+  background-color: rgba(128, 128, 128, 0.5);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+</style>

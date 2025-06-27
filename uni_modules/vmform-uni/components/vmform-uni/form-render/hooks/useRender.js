@@ -953,7 +953,11 @@ export const useRender = ({ data, props, emit }) => {
                 tooltip: item.tooltip !== undefined ? item.tooltip : (defaultOptionItem.tooltip || ''),
                 desc: item.desc !== undefined ? item.desc : (defaultOptionItem.desc || ''),
                 image: item.image !== undefined ? item.image : (defaultOptionItem.image || ''),
-                disabled: item.disabled !== undefined ? item.disabled : (defaultOptionItem.disabled || false)
+                disabled: item.disabled !== undefined ? item.disabled : (defaultOptionItem.disabled || false),
+                hidden: item.hidden !== undefined ? item.hidden : (defaultOptionItem.hidden || false),
+                additionalComponents: item.additionalComponents || defaultOptionItem.additionalComponents || [],
+                additionalComponentsMultiple: item.additionalComponentsMultiple || defaultOptionItem.additionalComponentsMultiple || false,
+                maxAdditionalComponents: item.maxAdditionalComponents || defaultOptionItem.maxAdditionalComponents || 0
               }
             })
           }
