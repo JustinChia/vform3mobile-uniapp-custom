@@ -130,6 +130,9 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
       if (methodObjs.formConfig().labelPosition === 'top') {
         return '100%'
       }
+      if(props.field.type=='m-checkbox'){
+        return '100%'
+      }
       if (props.field.options.labelWidth) {
         return Number(props.field.options.labelWidth)
       }
@@ -148,6 +151,9 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
     },
 
     labelPosition: () => {
+      if (props.field.options.labelPosition) {
+        return props.field.options.labelPosition
+      }
       if (methodObjs.formConfig().labelPosition) {
         return methodObjs.formConfig().labelPosition
       }
@@ -813,6 +819,8 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
      */
     reloadOptions(options) {
       props.field.options.optionItems = translateOptionItems(options, props.field.type, props.field.options.labelKey || 'label', props.field.options.valueKey || 'value')
+
+      console.error('reloadOptions', props.field.options.optionItems)
       if (actions && actions.afterLoadOptions) actions.afterLoadOptions()
     },
 
@@ -857,6 +865,7 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
     getOptions() {
       return props.field.options.optionItems.map(item => {
         return {
+          ...item,
           value: item.value,
           text: item.label,
           disable: item.disabled,

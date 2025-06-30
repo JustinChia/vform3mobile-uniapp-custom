@@ -10,18 +10,13 @@
 
 <template>
   <!-- 这个view删除后会导致验证错误 -->
-  <view :class="[fieldStatusClass, methodObjs.isFocus() ? 'is-focus' : '', field.type]">
-    <uni-forms-item
-      v-if="!field.options.hidden"
-      ref="fieldItemRef"
-      :label="methodObjs.fieldLabel()"
-      :label-align="methodObjs.labelAlign()"
-      :label-position="methodObjs.labelPosition()"
-      :labelWidth="methodObjs.fieldLabelWidth()"
-      :name="validateName"
-      :rules="methodObjs.getFieldRules()"
-      :required="required"
-    >
+  <!-- labelWidth 强制checkbox 为100% -->
+  <view :class="[fieldStatusClass, methodObjs.isFocus() ? 'is-focus' : '', field.type,'label-position-'+methodObjs.labelPosition()]">
+    <uni-forms-item v-if="!field.options.hidden" ref="fieldItemRef" :label="methodObjs.fieldLabel()" :label-align="methodObjs.labelAlign()" :label-position="methodObjs.labelPosition()" 
+        :labelWidth="methodObjs.fieldLabelWidth()"
+        :name="validateName" 
+        :rules="methodObjs.getFieldRules()"
+        :required="required">
       <!-- 需要增加label-position属性  -->
       <slot v-if="!methodObjs.isReadMode()" />
       <slot v-else name="readmode" />
@@ -35,15 +30,15 @@ import { useField } from './fieldMixin'
 const props = defineProps({
   field: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   designer: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   parentWidget: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   parentList: {
     type: Array,
@@ -174,12 +169,19 @@ export default {
   }
 }
 
+.label-position-top.m-checkbox {
+  .uni-forms-item {
+    flex-direction: column;
+  }
+}
+
 // #ifndef MP-WEIXIN
 ::v-deep .uni-forms-item__content {
   display: inline-flex;
   justify-content: flex-start;
   align-items: center;
 }
+
 
 // #endif
 </style>

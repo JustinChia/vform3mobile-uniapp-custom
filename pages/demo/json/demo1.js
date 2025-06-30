@@ -6,12 +6,12 @@ export const formConfig = {
   customClass: [],
   dataSources: [],
   functions: '',
-  inputAlign: 'left',
+  inputAlign: 'right',
   inputBorder: false,
   jsonVersion: -3,
-  labelAlign: 'center',
+  labelAlign: 'left',
   labelPosition: 'left',
-  labelWidth: 120,
+  labelWidth: 80,
   layoutType: 'PC',
   modelName: 'formData',
   onFormCreated: '',
@@ -64,7 +64,11 @@ export const formConfig = {
               state: true,
             },
           ],
-        },
+        },{
+            "targetFieldName": "msize92125",
+            "type": "setVisibility",
+            "value": true
+          }
       ],
     },
     {
@@ -604,6 +608,7 @@ export const widgetList = [
       labelIconPosition: 'rear',
       labelKey: 'label',
       labelTooltip: null,
+      labelPosition:'top',
       labelWidth: null,
       name: 'wholeBookProcess',
       onChange: '',
@@ -715,7 +720,7 @@ export const widgetList = [
           additionalComponents: [
             {
               id: 46814,
-              label: '',
+              label: '订单号',
               name: 'orderNo',
               type: 'input',
               required: false,
@@ -1276,7 +1281,7 @@ export const widgetList = [
         icon: 'checkbox-field',
         options: {
           customClass: [],
-          defaultValue: [8, 3],
+          defaultValue: [],
           desc: '',
           direction: 'horizontal',
           disabled: false,
@@ -1318,7 +1323,7 @@ export const widgetList = [
               additionalComponents: [
                 {
                   id: 76919,
-                  label: '',
+                  label: '颜色',
                   name: 'color',
                   type: 'select',
                   required: true,
@@ -1342,7 +1347,7 @@ export const widgetList = [
                 },
                 {
                   id: 92352,
-                  label: '',
+                  label: '长边',
                   name: 'longside',
                   type: 'input',
                   required: true,
@@ -1353,7 +1358,7 @@ export const widgetList = [
                 },
                 {
                   id: 62136,
-                  label: '',
+                  label: '短边',
                   name: 'shortside',
                   type: 'input',
                   required: true,

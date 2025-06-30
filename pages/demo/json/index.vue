@@ -61,7 +61,7 @@ import outputs from '../components/ouputs.vue'
 import { useVformRenderHooks } from '../vformRender/hooks/vformRenderHooks.js'
 
 // import formJsonDemo from "./formJson.js";
-import { widgetList, formConfig } from './demo2.js'
+import { widgetList, formConfig } from './demo1.js'
 const { log, output, clearOutput, vmFormRenderRef } = useVformRenderHooks()
 
 const data = {
@@ -96,6 +96,7 @@ const setFormJson = () => {
       formConfig,
       widgetList,
     }
+    console.error(JSON.stringify(formJson))
     nextTick(() => {
       vmformRender.value.setFormJson(formJson)
       // setFormDataTest()

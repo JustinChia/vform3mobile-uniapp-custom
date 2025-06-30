@@ -12,16 +12,26 @@
     :sub-form-row-id="subFormRowId"
   >
     <view class="field" :class="[inputAlignClass]">
-      <view class="cascader-display" :class="{'is-placeholder': !data.fieldModel || data.fieldModel.length === 0}" @click="showPopup">
-        {{ displayValue }}
-      </view>
-      
-      <!-- 右侧图标 -->
-      <view class="picker-icon">
-        <slot name="icon">
-          <text class="uni-icons uniui-forward"></text>
-        </slot>
-      </view>
+    <custom-picker
+      ref="fieldEditor"
+      v-model="data.fieldModel"
+      :field="field"
+      :options="currentOptions"
+      :disabled="props.field.options.disabled || props.field.options.readonly"
+      :placeholder="props.field.options.placeholder || '请选择'"
+      :title="props.field.options.title || props.field.options.label"
+      :multiple="props.field.options.multiple"
+      :field-names="cascaderFieldNames"
+      @change="handleCascaderChange"
+      class="cascader-wrapper"
+    >
+      <!-- 自定义显示内容 -->
+      <template #display="{ displayText }">
+          <view class="radio-display">
+            {{ displayText || field.options.placeholder || '请选择' }}
+          </view>
+        </template>
+    </custom-picker>
     </view>
     <template #readmode>
       {{ displayArray }}
@@ -33,6 +43,9 @@
           <view class="title-action-wrapper">
             <view class="popup-button" size="mini" @click="closePopup">取消</view>
             <view class="popup-button" size="mini" @click="confirmSelected">确定</view>
+          </view>
+          <view class="title-search-wrapper">
+            <!-- <uni-easyinput ref="searchRef" v-model.trim="searchVal" autofocus placeholder="搜索" @search="onSearch" @clear="onSearch"></uni-easyinput> -->
           </view>
         </view>
         <view class="content-list-wrapper">
@@ -70,7 +83,7 @@ export default {
 <script setup>
 import { deepClone } from '../../utils/util.js'
 import { computed, ref, reactive } from '../../utils/vueBuilder.js'
-import { useField } from './fieldMixin'
+import { useField } from './fieldMixin.js'
 
 import FormItemWrapper from './form-item-wrapper'
 import CustomPicker from './custom-picker.vue'
@@ -211,21 +224,6 @@ const displayArray = computed(() => {
   return displayLabels
 })
 
-const displayValue = computed(() => {
-  const placeholder = props.field.options.placeholder || '请选择';
-
-  if (!data.fieldModel || data.fieldModel.length === 0) {
-    return placeholder;
-  }
-
-  if (props.field.options.multiple) {
-    const labels = data.fieldModel.map(item => getSelectedLabel(item)).filter(Boolean);
-    return labels.length > 0 ? labels.join(', ') : placeholder;
-  } else {
-    return getSelectedLabel(data.fieldModel) || placeholder;
-  }
-});
-
 const showPopup = () => {
   if (props.field.options.disabled || props.field.options.readonly) return
   fieldEditor.value.open('bottom')
@@ -345,37 +343,6 @@ defineExpose(exposeObj)
   height: 60rpx;
 }
 
-.cascader-display {
-  padding-left: 10px;
-  border: 0px none;
-  box-sizing: border-box;
-  background-color: #fff;
-  color: #333;
-  min-height: 20px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  font-size: 24rpx;
-  width: 100%;
-
-  &.is-placeholder {
-    color: #999;
-  }
-}
-.fieldReadonly .cascader-display {
-  background-color: #f5f5f5;
-  color: #999;
-}
-
-.is-focus .cascader-display {
-  border-color: #EEC23D;
-}
-
-.picker-icon {
-  color: #c0c4cc;
-  display:flex;
-}
-
 .field {
   display: flex;
   justify-content: space-between;
@@ -439,6 +406,20 @@ defineExpose(exposeObj)
     pointer-events: none;
   }
 }
+
+.cascader-display {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
 .cascader-content {
   display: flex;
   flex-direction: column;
@@ -447,18 +428,20 @@ defineExpose(exposeObj)
 
 .selected-items {
   display: flex;
-  padding: 0px;
+  padding: 15px 20px;
   border-bottom: 1px solid #f0f0f0;
   font-size: 14px;
   color: #666;
   gap: 10px;
   align-items: center;
+  background-color: #f8f8f8;
 
   view {
-    color: #eec23d;
+    color: #007aff;
     cursor: pointer;
     padding: 5px 10px;
     border-radius: 4px;
+    background-color: #e3f2fd;
     font-size: 12px;
 
     &:after {
@@ -494,7 +477,7 @@ defineExpose(exposeObj)
     background-color: #e3f2fd;
     
     .cascader-option-label {
-      color: #EEC23D;
+      color: #007aff;
       font-weight: 500;
     }
   }
@@ -587,7 +570,7 @@ defineExpose(exposeObj)
             display: inline-block;
             width: 80%;
             height: 4rpx;
-            background-color: #eec23d;
+            background-color: #ee0a24;
             position: absolute;
             right: 10%;
             bottom: -10rpx;
@@ -615,9 +598,7 @@ defineExpose(exposeObj)
           display: flex;
           align-items: center;
           width: 100%;
-          padding: 10rpx 0px;
           position: relative;
-          border-bottom: 1rpx solid #e6e6e6;
 
           // 复选框样式
           checkbox {

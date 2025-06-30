@@ -16,7 +16,7 @@
         @show-image-preview="showImagePreview">
         <!-- 自定义显示内容 -->
         <template #display="{ displayText }">
-          <view class="radio-display">
+          <view class="radio-display" :class="{ 'is-placeholder': !displayText }">
             {{ displayText || field.options.placeholder || '请选择' }}
           </view>
         </template>
@@ -35,15 +35,11 @@
       </view>
     </template>
 
-    <!-- 图片预览弹窗 -->
-    <view v-if="imagePreviewVisible" class="image-preview-modal" @click="closeImagePreview">
-      <!-- <view class="image-preview-content" @click.stop> -->
-        <image :src="previewImageUrl" mode="widthFix" style="height:80vw;border-radius:16rpx;" />
-        <view class="close-btn" @click="closeImagePreview">
-          <uni-icons type="closeempty" size="18" color="#FFFFFF"></uni-icons>
-        </view>
-      <!-- </view> -->
-    </view>
+    <!-- 图片预览组件 -->
+    <ImagePreview 
+      :visible="imagePreviewVisible" 
+      :image-url="previewImageUrl" 
+      @close="closeImagePreview" />
   </form-item-wrapper>
 </template>
 
@@ -53,7 +49,7 @@ import { useField } from './fieldMixin'
 
 import FormItemWrapper from './form-item-wrapper'
 import CustomPicker from './custom-picker.vue'
-import uniDataCheckbox from '@/uni_modules/uni-data-checkbox/components/uni-data-checkbox/uni-data-checkbox.vue'
+import ImagePreview from './image-preview.vue'
 
 // 状态管理
 const imagePreviewVisible = ref(false)
@@ -161,10 +157,15 @@ export default {
   color: #333;
   min-height: 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   font-size: 24rpx;
   width: 100%;
+  text-align:right;
+  
+  &.is-placeholder {
+    color: #999;
+  }
 }
 
 .fieldReadonly .radio-display {
@@ -173,34 +174,8 @@ export default {
 }
 
 .is-focus .radio-display {
-  border-color: #007aff;
+  border-color: #EEC23D;
 }
 
-.image-preview-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
 
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  width: 30px;
-  height: 30px;
-  background-color: rgba(128, 128, 128, 0.5);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
 </style>

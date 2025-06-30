@@ -508,9 +508,10 @@ export function translateOptionItems(rawData, widgetType, labelKey, valueKey) {
   if (!!rawData && rawData.length > 0) {
     rawData.forEach(ri => {
       result.push({
+        ...ri,
         label: ri[labelKey],
         value: ri[valueKey],
-        disabled: ri.disabled,
+        // disabled: ri.disabled,
       })
     })
   }

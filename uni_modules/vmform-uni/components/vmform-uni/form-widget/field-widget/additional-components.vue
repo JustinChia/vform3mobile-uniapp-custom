@@ -11,50 +11,57 @@
       </view>
 
       <view v-for="(component, compIndex) in item.additionalComponents" :key="compIndex" class="additional-component-item">
-        <uni-forms-item :name="['picker','additional',groupIndex,component.name]" :label="component.label" :label-width="component.label? '150rpx' : '0rpx'" :rules="buildValidationRules(component)">
-          <!-- 下拉选择 -->
-          <picker v-if="component.type === 'select'" :range="getSelectOptions(component)" range-key="label" :value="getPickerIndex(getSelectOptions(component), group[component.name])" @change="(val)=>{handleAdditionalPickerComponentChanged(group,component,val)}" class="additional-select">
-            <view class="picker-display">
-              <text v-if="getPickerDisplayText(getSelectOptions(component), group[component.name])" class="picker-value">
-                {{ getPickerDisplayText(getSelectOptions(component), group[component.name]) }}
-              </text>
-              <text v-else class="picker-placeholder">
-                {{ component.placeholder || '请选择' }}
-              </text>
+        <uni-forms-item :name="['picker','additional',editComponentIndex(groupIndex),component.name]" :rules="buildValidationRules(component)">
+          <template #label></template>
+          <view class="additinal-component-item-wrapper">
+            <view class="additinal-component-item-title" v-if="component.label">{{ component.label }}</view>
+            <view class="additinal-component-item-control">
+              <!-- 下拉选择 -->
+              <picker v-if="component.type === 'select'" :range="getSelectOptions(component)" range-key="label" :value="getPickerIndex(getSelectOptions(component), group[component.name])" @change="(val)=>{handleAdditionalPickerComponentChanged(group,component,val)}" class="additional-select">
+                <view class="picker-display">
+                  <text v-if="getPickerDisplayText(getSelectOptions(component), group[component.name])" class="picker-value">
+                    {{ getPickerDisplayText(getSelectOptions(component), group[component.name]) }}
+                  </text>
+                  <text v-else class="picker-placeholder">
+                    {{ component.placeholder || '请选择' }}
+                  </text>
+                </view>
+              </picker>
+
+              <!-- 文本输入 -->
+              <uni-easyinput v-else-if="component.type === 'input'" v-model="group[component.name]" :type="component.inputType || 'text'" :placeholder="component.placeholder || '请输入'" :maxlength="component.maxLength" :disabled="component.disabled" :readonly="component.readonly" :inputBorder="false"
+                             @change="updateComponentValue( groupIndex, component.name, $event)"/>
+
+              <!-- 数字输入 -->
+              <uni-number-box v-else-if="component.type === 'number'" v-model="group[component.name]" :min="component.min" :max="component.max" :step="component.step || 1" :disabled="component.disabled" @update:modelValue="updateComponentValue( groupIndex, component.name, $event)" class="additional-number"
+                              :border="false" />
+
+              <!-- 日期选择 -->
+              <uni-datetime-picker v-else-if="component.type === 'date'" v-model="group[component.name]" type="date" :disabled="component.disabled" @change="updateComponentValue( groupIndex, component.name, $event)" class="additional-date" :border="false" />
+
+              <!-- 时间选择 -->
+              <uni-datetime-picker v-else-if="component.type === 'time'" v-model="group[component.name]" type="time" :disabled="component.disabled" @change="updateComponentValue( groupIndex, component.name, $event)" class="additional-time" :border="false" />
+
+              <!-- 开关 -->
+              <switch v-else-if="component.type === 'switch'" :checked="group[component.name]" :disabled="component.disabled" @change="updateSwitchValue(groupIndex, component.name, $event)" class="additional-switch" />
+
+              <!-- 单选框 -->
+              <radio-group v-else-if="component.type === 'radio'" :value="group[component.name]" @change="updateComponentValue( groupIndex, component.name, $event.detail.value)" class="additional-radio">
+                <label v-for="option in component.simpleOptions" :key="option.value" class="radio-option">
+                  <radio :value="option.value" :disabled="component.disabled" />
+                  <text class="radio-text">{{ option.label }}</text>
+                </label>
+              </radio-group>
+
+              <!-- 多选框 -->
+              <checkbox-group v-else-if="component.type === 'checkbox'" :value="group[component.name] || []" @change="updateCheckboxValue(groupIndex, component.name, $event.detail.value)" class="additional-checkbox">
+                <label v-for="option in component.simpleOptions" :key="option.value" class="checkbox-option">
+                  <checkbox :value="option.value" :disabled="component.disabled" />
+                  <text class="checkbox-text">{{ option.label }}</text>
+                </label>
+              </checkbox-group>
             </view>
-          </picker>
-
-          <!-- 文本输入 -->
-          <uni-easyinput v-else-if="component.type === 'input'" v-model="group[component.name]" :type="component.inputType || 'text'" :placeholder="component.placeholder || '请输入'" :maxlength="component.maxLength" :disabled="component.disabled" :readonly="component.readonly"
-                         @change="updateComponentValue( groupIndex, component.name, $event)" />
-
-          <!-- 数字输入 -->
-          <uni-number-box v-else-if="component.type === 'number'" v-model="group[component.name]" :min="component.min" :max="component.max" :step="component.step || 1" :disabled="component.disabled" @change="updateComponentValue( groupIndex, component.name, $event)" class="additional-number" />
-
-          <!-- 日期选择 -->
-          <uni-datetime-picker v-else-if="component.type === 'date'" v-model="group[component.name]" type="date" :disabled="component.disabled" @change="updateComponentValue( groupIndex, component.name, $event)" class="additional-date" />
-
-          <!-- 时间选择 -->
-          <uni-datetime-picker v-else-if="component.type === 'time'" v-model="group[component.name]" type="time" :disabled="component.disabled" @change="updateComponentValue( groupIndex, component.name, $event)" class="additional-time" />
-
-          <!-- 开关 -->
-          <switch v-else-if="component.type === 'switch'" :checked="group[component.name]" :disabled="component.disabled" @change="updateSwitchValue(groupIndex, component.name, $event)" class="additional-switch" />
-
-          <!-- 单选框 -->
-          <radio-group v-else-if="component.type === 'radio'" :value="group[component.name]" @change="updateComponentValue( groupIndex, component.name, $event.detail.value)" class="additional-radio">
-            <label v-for="option in component.simpleOptions" :key="option.value" class="radio-option">
-              <radio :value="option.value" :disabled="component.disabled" />
-              <text class="radio-text">{{ option.label }}</text>
-            </label>
-          </radio-group>
-
-          <!-- 多选框 -->
-          <checkbox-group v-else-if="component.type === 'checkbox'" :value="group[component.name] || []" @change="updateCheckboxValue(groupIndex, component.name, $event.detail.value)" class="additional-checkbox">
-            <label v-for="option in component.simpleOptions" :key="option.value" class="checkbox-option">
-              <checkbox :value="option.value" :disabled="component.disabled" />
-              <text class="checkbox-text">{{ option.label }}</text>
-            </label>
-          </checkbox-group>
+          </view>
         </uni-forms-item>
       </view>
     </view>
@@ -81,6 +88,15 @@ const props = defineProps({
   additionalExpanded: {
     type: Boolean,
     default: false
+  },
+  // 新增：指定要编辑的数组项索引，-1表示编辑整个数组（兼容模式）
+  editIndex: {
+    type: Number,
+    default: -1
+  },
+  allowAddAdditional: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -94,26 +110,38 @@ const emit = defineEmits(['update-additional'])
 // 每个组对象的key为组件的id，value为用户输入的值
 const additionalData = ref([])
 
+const editComponentIndex = (groupIndex)=>{
+  return groupIndex+( props.editIndex <0 ? 0: props.editIndex)
+}
+
 // 计算属性
 const maxGroups = computed(() => {
   return props.item.maxAdditionalComponents || 1
 })
 
 const canAddGroup = computed(() => {
-  return additionalData.value.length < maxGroups.value
+  return additionalData.value.length < maxGroups.value &&
+    props.editIndex === -1 && // -1表示编辑整个数组
+    props.allowAddAdditional
 })
 
 // ==================== 数据初始化方法 ====================
 // 初始化附加组件数据
 // 根据props.selectedValue中的additional数据来初始化additionalData
-// 支持单组和多组两种模式
+// 支持单组和多组两种模式，以及指定索引编辑模式
 const initializeAdditionalData = () => {
   if (props.item.additionalComponents && props.item.additionalComponents.length > 0) {
     // 如果已有选中值且包含additional数据，使用现有数据
     if (props.selectedValue && typeof props.selectedValue === 'object' && props.selectedValue.additional) {
       if (props.item.additionalComponentsMultiple && Array.isArray(props.selectedValue.additional)) {
         // 多组模式：additional是数组，每个元素是一个组对象
-        additionalData.value = props.selectedValue.additional
+        if (props.editIndex >= 0 && props.editIndex < props.selectedValue.additional.length) {
+          // 编辑指定索引的数组项
+          additionalData.value = [props.selectedValue.additional[props.editIndex]]
+        } else {
+          // 编辑整个数组（兼容模式）
+          additionalData.value = props.selectedValue.additional
+        }
       } else if (!props.item.additionalComponentsMultiple && typeof props.selectedValue.additional === 'object') {
         // 单组模式：additional是对象，包装成数组
         additionalData.value = [props.selectedValue.additional]
@@ -151,14 +179,31 @@ const handleAdditionalPickerComponentChanged = (group, component, val) => {
 // - 无附加组件：直接返回选项值
 const buildSelectValue = () => {
   if (props.item.additionalComponents && props.item.additionalComponents.length > 0) {
-    // 根据多组模式决定additional的格式
-    const additional = props.item.additionalComponentsMultiple
-      ? additionalData.value  // 多组模式：返回整个数组
-      : additionalData.value[0] || {}  // 单组模式：返回第一个组对象
+    let additional
+
+    if (props.item.additionalComponentsMultiple) {
+      // 多组模式
+      if (props.editIndex >= 0) {
+        // 指定索引编辑模式：需要将编辑后的数据更新到原数组的指定位置
+        const originalAdditional = props.selectedValue?.additional || []
+        const updatedAdditional = [...originalAdditional]
+        if (additionalData.value[0]) {
+          updatedAdditional[props.editIndex] = additionalData.value[0]
+        }
+        additional = updatedAdditional
+      } else {
+        // 编辑整个数组（兼容模式）
+        additional = additionalData.value
+      }
+    } else {
+      // 单组模式：返回第一个组对象
+      additional = additionalData.value[0] || {}
+    }
 
     return {
       value: props.item.value,
-      additional: additional
+      additional: additional,
+      editIndex: props.editIndex >= 0 ? props.editIndex : undefined  // 传递编辑索引信息
     }
   } else {
     // 没有附加组件，直接返回选项值
@@ -232,7 +277,8 @@ const getSelectOptions = (component) => {
       // 分组选项，展开子选项
       option.children.forEach(childOption => {
         flatOptions.push({
-          label: `${option.label} - ${childOption.label}`,
+          // label: `${option.label} - ${childOption.label}`,
+          label: `${childOption.label}`,
           value: childOption.value
         })
       })
@@ -255,7 +301,7 @@ const buildValidationRules = (component) => {
   if (component.required !== false) {
     rules.push({
       required: true,
-      errorMessage: `${component.requiredMessage}` || `字段必填`
+      errorMessage: `${component.requiredMessage ||'字段必填'}`
     })
   }
 
@@ -427,6 +473,13 @@ watch(() => props.additionalExpanded, (newVal) => {
 // 初始化
 initializeAdditionalData()
 </script>
+<script>
+export default {
+  options: {
+    styleIsolation: 'shared',
+  },
+}
+</script>
 
 <style lang="scss" scoped>
 .additional-components {
@@ -448,8 +501,9 @@ initializeAdditionalData()
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
+  height:70rpx;
+  padding-left:20rpx;
+  border-left: 3px solid #eec23d;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -473,25 +527,46 @@ initializeAdditionalData()
 }
 
 .additional-component-item {
-  margin-bottom: 10rpx;
-
   &:last-child {
     margin-bottom: 0;
+  }
+
+  :deep(.uni-forms-item){
+    .uni-forms-item__error{
+      width:100%;
+      text-align:right;
+      padding-right:10px;
+      box-sizing:border-box;
+    }
+  }
+}
+
+.additinal-component-item-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.additinal-component-item-control {
+  width: 50%;
+  flex-grow: 1;
+
+  .uni-easyinput {
+    width: 100%;
+    .uni-input-placeholder{
+      text-align:right;
+    }
+  }
+
+  .picker-display{
+    padding-left:20rpx;
+    text-align:right;
   }
 }
 
 .additional-select {
   width: 100%;
   flex-grow: 1;
-}
-
-.picker-display {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  color: #333;
-  font-size: 28rpx;
+  padding: 10rpx 0px;
 }
 
 .picker-value {
@@ -507,17 +582,13 @@ initializeAdditionalData()
 .add-group-btn {
   margin-top: 10px;
   padding: 8px 15px;
-  background-color: #007aff;
+  background-color: #eec23d;
   color: white;
   border-radius: 4px;
   text-align: center;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #0056b3;
-  }
 }
 
 // 附加组件样式

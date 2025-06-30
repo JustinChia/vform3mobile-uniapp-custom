@@ -467,7 +467,7 @@
 		/* #ifndef APP-NVUE */
 		margin-bottom: 22px;
 		/* #endif */
-		flex-direction: row;
+		// flex-direction: row;
 
 		&__label {
 			display: flex;

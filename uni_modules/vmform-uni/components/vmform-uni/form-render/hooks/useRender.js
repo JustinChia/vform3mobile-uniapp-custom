@@ -169,7 +169,7 @@ export const useRender = ({ data, props, emit }) => {
     setMiniFormJson: (miniFormJson) => {
       if (miniFormJson) {
         const expandedFormJson = methodObjs.expandFormConfig(miniFormJson)
-        console.log('expandedFormJson', expandedFormJson)
+        console.error('expandedFormJson', expandedFormJson)
         methodObjs.setFormJson(expandedFormJson)
       }
     },
@@ -440,6 +440,7 @@ export const useRender = ({ data, props, emit }) => {
         func.call(proxy, fieldName, newValue, oldValue, data.formDataModel, subFormName, subFormRowIndex)
       }
       // #endif
+      debugger
       methodObjs.triggerDynamicLogic(fieldName, newValue, oldValue, subFormName, subFormRowIndex)
     },
 
@@ -775,7 +776,7 @@ export const useRender = ({ data, props, emit }) => {
               emitterMixin.broadcast('ContainerItem', 'loadOptionItemsFromDataSet', dsName)
               emitterMixin.broadcast('FieldWidget', 'loadOptionItemsFromDataSet', dsName)
             } catch (err) {
-              console.log(err)
+              console.error(err)
               $message.error(err.message)
             }
           }
@@ -783,6 +784,7 @@ export const useRender = ({ data, props, emit }) => {
       }
     },
 
+    
     triggerDynamicLogic(fieldName, newValue, oldValue, subFormName, subFormRowIndex) {
       // 统一的组件获取方法
       const getTargetFieldRef = targetFieldName => {
@@ -799,7 +801,7 @@ export const useRender = ({ data, props, emit }) => {
         // 如果直接获取失败，尝试子表单方式获取
         if (subFormRowIndex !== undefined) {
           const subform = methodObjs.getWidgetRef(subFormName)
-          targetFieldRef = subform.getWidgetRefOfSubForm(targetFieldName, subFormRowIndex)
+          targetFieldRef = subform?.getWidgetRefOfSubForm(targetFieldName, subFormRowIndex)
           if (targetFieldRef) {
             return targetFieldRef
           }
@@ -808,62 +810,170 @@ export const useRender = ({ data, props, emit }) => {
         return null
       }
 
+      // 通用判断函数：处理4种情况组合
+      const isConditionMet = (ruleValues, triggerVal) => {
+        // 统一提取值的函数
+        const extractValue = (item) => {
+          return typeof item === 'object' && item !== null && 'value' in item ? item.value : item
+        }
+
+        // 统一转换为数组格式进行比较
+        const ruleArray = Array.isArray(ruleValues) ? ruleValues.map(extractValue) : [extractValue(ruleValues)]
+        const triggerArray = Array.isArray(triggerVal) ? triggerVal.map(extractValue) : [extractValue(triggerVal)]
+
+        // 检查是否有交集（只要有包含就满足条件）
+        return ruleArray.some(ruleVal => triggerArray.includes(ruleVal))
+      }
+
       if (formConfig.value.dynamicLogicList && Array.isArray(formConfig.value.dynamicLogicList)) {
+
+        // 把旧值对应字段的动态逻辑全部恢复
+        oldValue && formConfig.value.dynamicLogicList
+          .filter(x => x.triggerFieldName === fieldName)
+          .forEach(rule => {
+            const triggerValue = oldValue
+            let conditionMet = isConditionMet(rule.triggerFieldValues, triggerValue)
+
+            // 执行动作的统一方法
+            const executeAction = (action) => {
+              const targetFieldNames = Array.isArray(action.targetFieldName) ? action.targetFieldName : [action.targetFieldName]
+              targetFieldNames.forEach(targetFieldName => {
+                const targetFieldRef = getTargetFieldRef(targetFieldName)
+                console.error('targetFieldName', targetFieldName);
+                // 恢复显示 启用
+                targetFieldRef?.setHidden(false)
+                targetFieldRef?.setDisabled(false)
+
+                // 如果这有optionItems, 递归optionItems
+                if (targetFieldRef?.field?.options?.optionItems) {
+                  targetFieldRef.field.options.optionItems.forEach(optionItem => {
+                    optionItem.hidden = false
+                    optionItem.disabled = false
+                    if (optionItem.children) {
+                      optionItem.children.forEach(child => {
+                        child.hidden = false
+                        child.disabled = false
+                      })
+                    }
+                  })
+                }
+
+              })
+            }
+
+            // 根据条件执行相应的动作
+            if (conditionMet) {
+              // 条件满足时，执行actions
+              rule.actions.forEach(action => {
+                executeAction(action)
+              })
+            }
+          })
+
+
+
         formConfig.value.dynamicLogicList
           .filter(x => x.triggerFieldName === fieldName)
           .forEach(rule => {
             const triggerFieldRef = getTargetFieldRef(rule.triggerFieldName)
-            const triggerValue = triggerFieldRef?.getValue()
-            let conditionMet = false
-            if (Array.isArray(rule.triggerFieldValues)) {
-              conditionMet = rule.triggerFieldValues.includes(triggerValue)
-            } else {
-              conditionMet = rule.triggerFieldValues === triggerValue
+            let triggerValue = triggerFieldRef?.getValue()
+            if (triggerValue.value) {
+              triggerValue = triggerValue.value
             }
+            let conditionMet = isConditionMet(rule.triggerFieldValues, triggerValue)
 
+            // 清理被隐藏或禁用选项的值
+            const cleanupInvalidOptionValues = (targetFieldRef, actionValues, shouldRemove) => {
+              let currentValue = targetFieldRef.getValue()
+              let valueChanged = false
+
+              actionValues.forEach(actionValue => {
+                if (shouldRemove(actionValue) && currentValue !== null && currentValue !== undefined) {
+                  if (Array.isArray(currentValue)) {
+                    // 多选情况
+                    const newValue = currentValue.filter(val => val !== actionValue.optionValue)
+                    if (newValue.length !== currentValue.length) {
+                      currentValue = newValue
+                      valueChanged = true
+                    }
+                  } else {
+                    // 单选情况
+                    if (currentValue === actionValue.optionValue) {
+                      currentValue = null
+                      valueChanged = true
+                    }
+                  }
+                }
+              })
+
+              if (valueChanged) {
+                targetFieldRef.setValue(currentValue)
+              }
+            }
             // 执行动作的统一方法
             const executeAction = (action, isRevert = false) => {
-              console.error('执行动作统一方法', fieldName)
               const targetFieldNames = Array.isArray(action.targetFieldName) ? action.targetFieldName : [action.targetFieldName]
               targetFieldNames.forEach(targetFieldName => {
                 const targetFieldRef = getTargetFieldRef(targetFieldName)
-
                 if (targetFieldRef) {
                   const actionValues = Array.isArray(action.value) ? [...action.value] : [action.value]
-                  console.error('setOptionEnable', actionValues)
-
                   switch (action.type) {
                     case 'setVisibility':
                       actionValues.forEach(actionValue => {
-                        targetFieldRef.setHidden(!actionValue) // setHidden(true) means hide
+                        console.error('setHidden', targetFieldRef, targetFieldName, actionValue)
+                        targetFieldRef?.setHidden(!actionValue) // setHidden(true) means hide
+                        // 如果组件被隐藏，清空已选值
+                        if (!actionValue) {
+                          targetFieldRef?.setValue(null)
+                        }
                       })
                       break
                     case 'setEnable':
                       actionValues.forEach(actionValue => {
-                        targetFieldRef.setDisabled(!actionValue) // setDisabled(true) means disable
+                        targetFieldRef?.setDisabled(!actionValue) // setDisabled(true) means disable
+                        // 如果组件被禁用，清空已选值
+                        if (!actionValue) {
+                          targetFieldRef?.setValue(null)
+                        }
                       })
                       break
                     case 'setOptionVisibility': // For select, radio, checkbox
                       if (targetFieldRef.getOptions && targetFieldRef.setOptions) {
                         let options = targetFieldRef.getOptions()
-                        const optionToModify = options.find(opt => opt.value === action.value.optionValue)
-                        if (optionToModify) {
-                          actionValues.forEach(actionValue => {
+
+                        actionValues.forEach(actionValue => {
+                          const optionToModify = options.find(opt => opt.value === actionValue.optionValue)
+                          if (optionToModify) {
                             optionToModify.hidden = !actionValue.state
-                          })
-                          targetFieldRef.setOptions(options)
-                          targetFieldRef.reloadOptions?.()
-                        }
+                          }
+                        })
+
+                        targetFieldRef?.setOptions(options)
+
+                        // 清理被隐藏选项的值
+                        cleanupInvalidOptionValues(targetFieldRef, actionValues, actionValue => {
+                          const option = options.find(opt => opt.value === actionValue.optionValue)
+                          return option && option.hidden
+                        })
                       }
                       break
                     case 'setOptionEnable': // For select, radio, checkbox
                       if (targetFieldRef.disableOption && targetFieldRef.enableOption) {
+                        let options = targetFieldRef.getOptions()
+
                         actionValues.forEach(actionValue => {
-                          if (actionValue.state) {
-                            targetFieldRef.enableOption(actionValue.optionValue)
-                          } else {
-                            targetFieldRef.disableOption(actionValue.optionValue)
+                          const optionToModify = options.find(opt => opt.value === actionValue.optionValue)
+                          if (optionToModify) {
+                            optionToModify.disabled = !actionValue.state
                           }
+                        })
+
+                        targetFieldRef?.setOptions(options)
+
+                        // 清理被禁用选项的值
+                        cleanupInvalidOptionValues(targetFieldRef, actionValues, actionValue => {
+                          const option = options.find(opt => opt.value === actionValue.optionValue)
+                          return option && option.disabled
                         })
                       }
                       break
@@ -886,10 +996,6 @@ export const useRender = ({ data, props, emit }) => {
                 rule.elseActions.forEach(action => {
                   executeAction(action, false)
                 })
-              } else {
-                // rule.actions.forEach(action => {
-                //   executeAction(action, true)
-                // })
               }
             }
           })

@@ -1,7 +1,7 @@
 <template>
   <view class="custom-picker" :class="{ disabled: disabled }">
     <!-- 显示区域 -->
-    <view>
+    <view style="width:100%;display:flex;align-items:center;justify-content:flex-end">
       <view class="picker-display" :class="{ 'is-placeholder': !displayText }" @click="showPicker">
         <slot name="display" :displayText="displayText">
           {{ displayText || placeholder }}
@@ -22,11 +22,17 @@
       <view class="popup-wrapper">
         <!-- 标题栏 -->
         <view class="popup-header">
+          <view style="width:160rpx;">              
+            <view class="popup-btn cancel" @click="cancel">取消</view>
+          </view>
           <view class="popup-title">
             <slot name="title">{{ title || '请选择' }}</slot>
           </view>
-          <view class="popup-actions">
-            <view class="popup-btn cancel" @click="cancel">取消</view>
+          <!-- 显示圆形叉号图标 -->
+          <!-- <view class="popup-btn cancel" @click="cancel">
+            <uni-icons type="closeempty" size="14" color="#FFFFFF"></uni-icons>
+          </view> -->
+          <view  style="width:160rpx;text-align:right;">
             <view class="popup-btn confirm" @click="confirm">确定</view>
           </view>
         </view>
@@ -35,7 +41,7 @@
         <view class="popup-search" v-if="searchable">
           <uni-easyinput v-model="searchText" placeholder="搜索" @input="onSearch" @clear="onSearch"></uni-easyinput>
         </view>
-        <view v-if="field.options.desc" class="popup-desc">
+        <view v-if="field?.options?.desc" class="popup-desc">
           {{field.options.desc}}
         </view>
 
@@ -44,39 +50,29 @@
           <!-- 表单容器 -->
           <scroll-view scroll-y class="option-list">
             <uni-forms ref="popupForm" :model="popupFormData">
-              <view v-for="(item, index) in filteredOptions" :key="getItemKey(item, index)" class="radio-option-item-wrapper" @click.stop="()=>{}">
-                <view class="radio-option-item" @click.stop="handleItemClick(item)" :class="{ 
-                    selected: isSelected(item),
-                    disabled: item.disabled 
-                  }">
-                  <!-- 选中状态指示器 -->
-                  <view class="radio-indicator" :class="{ checked: isSelected(item) }">
-                    <view class="radio-dot" v-if="isSelected(item)"></view>
-                  </view>
-
-                  <!-- 选项标签 -->
-                  <view class="radio-option-label">
-                    {{ item.text || item.label }}
-                  </view>
-
-                  <!-- 右侧操作区域 -->
-                  <view class="radio-option-actions">
-                    <!-- tooltip问号图标 -->
-                    <view v-if="item.tooltip" class="tooltip-icon" @click.stop="toggleTooltip(item)">
-                      ?
-                    </view>
-
-                    <!-- 示例图按钮 -->
-                    <view v-if="item.exampleImage" class="example-image-btn" @click.stop="showImagePreview(item)">
-                      示例图
-                    </view>
-                  </view>
-                </view>
-
-                <!-- tooltip提示文字 -->
-                <view v-if="item.tooltip && tooltipExpanded[getItemKey(item, index)]" class="tooltip-content">
-                  {{ item.tooltip }}
-                </view>
+              <view :class="[field&&field.options.showImageSelect?'image-popup-content':'text-popup-content']">
+              <view v-for="(item, index) in filteredOptions" :key="getItemKey(item, index)" @click.stop="()=>{}" style="width:100%">
+                <!-- 根据showImageSelect属性选择组件 -->
+                <RadioImageOptionItem 
+                  v-if="field&& field.options && field.options.showImageSelect"
+                  :item="item"
+                  :is-selected="isSelected(item)"
+                  :tooltip-visible="tooltipExpanded[getItemKey(item, index)]"
+                  :selected-value="getSelectedValueForItem(item)" 
+                  @item-click="handleItemClick"
+                  @tooltip-toggle="toggleTooltip"
+                  @image-preview="showImagePreview"
+                />
+                <RadioOptionItem 
+                  v-else
+                  :item="item"
+                  :is-selected="isSelected(item)"
+                  :tooltip-visible="tooltipExpanded[getItemKey(item, index)]"
+                  :selected-value="getSelectedValueForItem(item)" 
+                  @item-click="handleItemClick"
+                  @tooltip-toggle="toggleTooltip"
+                  @image-preview="showImagePreview"
+                />
 
                 <!-- 附加组件区域 -->
                 <additional-components 
@@ -86,6 +82,7 @@
                   :additionalExpanded="additionalExpanded[getItemKey(item, index)]" 
                   @update-additional="updateAdditional"
                 />
+              </view>
               </view>
             </uni-forms>
           </scroll-view>
@@ -98,6 +95,8 @@
 <script setup>
 import { ref, computed, watch } from '../../utils/vueBuilder.js'
 import AdditionalComponents from './additional-components.vue'
+import RadioOptionItem from './radio-option-item.vue'
+import RadioImageOptionItem from './radio-image-option-item.vue'
 const props = defineProps({
   field: {
     type: Object,
@@ -195,9 +194,10 @@ const displayText = computed(() => {
 
 const filteredOptions = computed(() => {
   if (!searchText.value) {
-    return props.options
+    return  props.options
   }
-  return props.options.filter(option => {
+
+  return  props.options.filter(option => {
     const label = getItemLabel(option)
     return label.toLowerCase().includes(searchText.value.toLowerCase())
   })
@@ -247,6 +247,11 @@ const showPicker = () => {
   // 重置展开状态
   tooltipExpanded.value = {}
   additionalExpanded.value = {}
+
+  // 初始化附加组件展开状态
+  props.options.forEach(item => {
+    additionalExpanded.value[getItemKey(item)] = getSelectedValueForItem(item)?.additional || false
+  })
   
   searchText.value = ''
   popup.value?.open()
@@ -317,7 +322,7 @@ const getSelectedValueForItem = (item) => {
   }
 }
 
-const updateAdditional = (selectValue) => {
+const updateAdditional = async (selectValue) => {
   if (!Array.isArray(selectValue)) {
     if (props.multiple) {
       // 多选模式：查找是否已存在，存在则更新，不存在则添加
@@ -371,6 +376,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 .custom-picker {
+  width:100%;
   position: relative;
 
   &.disabled {
@@ -392,8 +398,11 @@ defineExpose({
   color: #333;
   min-height: 20px;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
   flex: 1;
+  width:100%;
+  box-sizing:border-box;
 
   &.is-placeholder {
     color: #999;
@@ -401,11 +410,8 @@ defineExpose({
 }
 
 .picker-icon {
-  position: absolute;
-  right: -2rpx;
-  top: 50%;
-  transform: translateY(-50%);
   color: #c0c4cc;
+  display:flex;
 }
 
 .popup-wrapper {
@@ -416,7 +422,7 @@ defineExpose({
 }
 
 .popup-header {
-  padding: 15px 20px;
+  padding: 15rpx 20rpx;
   border-bottom: 1px solid #f0f0f0;
   display: flex;
   justify-content: space-between;
@@ -427,25 +433,26 @@ defineExpose({
   font-size: 16px;
   font-weight: 500;
   color: #333;
-}
-
-.popup-actions {
-  display: flex;
-  gap: 20px;
+  flex: 1;
+  text-align: center;
 }
 
 .popup-btn {
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
+  color: white;
+  width:60rpx;
+  height:45rpx;
+  flex-shrink:0;
+  display:inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
 
   &.cancel {
     color: #666;
   }
 
   &.confirm {
-    color: #007aff;
+    color: #EEC23D;
     font-weight: 500;
   }
 }
@@ -458,277 +465,25 @@ defineExpose({
 .popup-content {
   flex: 1;
   overflow: hidden;
+  
+
+  .image-popup-content{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20rpx;
+    width: 100%;
+    justify-items: start;
+    align-items: center;
+    padding:0px 20rpx;
+    box-sizing:border-box;
+  }
 }
 
 .option-list {
   height: 400px;
 }
 
-.option-item {
-  padding: 12px 20px;
-  border-bottom: 1px solid #f5f5f5;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f8f8f8;
-  }
-
-  &.selected {
-    background-color: #e3f2fd;
-    color: #007aff;
-  }
-
-  &.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.option-label {
-  flex: 1;
-  margin-left: 10px;
-}
-
-.option-extra {
-  color: #c0c4cc;
-}
-
-/* Radio Option Item 样式 */
-.radio-option-item-wrapper {
-  border-bottom: 1px solid #f5f5f5;
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.radio-option-item {
-  padding: 15px 20px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f8f8f8;
-  }
-
-  &.selected {
-    background-color: #e3f2fd;
-
-    .radio-option-label {
-      color: #007aff;
-      font-weight: 500;
-    }
-  }
-
-  &.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.radio-indicator {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #ddd;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-  transition: all 0.2s;
-
-  &.checked {
-    border-color: #007aff;
-    background-color: #007aff;
-  }
-}
-
-.radio-dot {
-  width: 8px;
-  height: 8px;
-  background-color: white;
-  border-radius: 50%;
-}
-
-.radio-option-label {
-  flex: 1;
-  font-size: 16px;
-  color: #333;
-}
-
-.radio-option-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.tooltip-icon {
-  width: 20px;
-  height: 20px;
-  background-color: #007aff;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-}
-
-.example-image-btn {
-  color: #007aff;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f0f8ff;
-  }
-}
-
-.tooltip-content {
-  padding: 10px 20px;
-  background-color: #f9f9f9;
-  color: #666;
-  font-size: 14px;
-  border-left: 3px solid #007aff;
-  animation: slideDown 0.3s ease;
-}
-
-.additional-components {
-  margin: 10px 20px;
-  padding: 10px;
-  background-color: #fafafa;
-  border-radius: 4px;
-}
-
-.additional-group {
-  margin-bottom: 15px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.group-title {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.delete-group-btn {
-  padding: 4px 8px;
-  background-color: #ff4d4f;
-  color: white;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.additional-component-item {
-  margin-bottom: 10px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.component-label {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-.additional-input {
-  width: 100%;
-}
-
-.additional-select {
-  width: 100%;
-
-  .picker-display {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-    min-height: 20px;
-  }
-}
-
-.additional-number {
-  width: 100%;
-}
-
-.additional-date {
-  width: 100%;
-}
-
-.additional-time {
-  width: 100%;
-}
-
-.additional-switch {
-  margin: 8px 0;
-}
-
-.additional-radio {
-  width: 100%;
-
-  .radio-option {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-
-    .radio-text {
-      margin-left: 8px;
-      font-size: 14px;
-    }
-  }
-}
-
-.additional-checkbox {
-  width: 100%;
-
-  .checkbox-option {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-
-    .checkbox-text {
-      margin-left: 8px;
-      font-size: 14px;
-    }
-  }
-}
-
-.add-group-btn {
-  padding: 8px 12px;
-  background-color: #007aff;
-  color: white;
-  border-radius: 4px;
-  text-align: center;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
+/* Radio Option Item 样式已移至独立组件 */
 @keyframes slideDown {
   from {
     opacity: 0;

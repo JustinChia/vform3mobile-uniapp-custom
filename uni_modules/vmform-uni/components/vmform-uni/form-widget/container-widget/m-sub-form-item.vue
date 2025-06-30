@@ -10,7 +10,7 @@
       <view v-for="(subFormRowId, sfrIdx) in data.rowIdData" :key="'sfrId' + subFormRowId" class="sub-form-row">
         <view class="sub-form-action-column hide-label">
           <view class="action-button-column" style="margin-top:10rpx;">
-            <text v-if="widget.options.showRowNumber" class="row-number-text"> {{widget.options.itemtitle}}{{ sfrIdx + 1 }}</text>
+            <text v-if="widget.options.showRowNumber" class="row-number-text"> {{widget.options.label}}{{ data.rowIdData.length>1? (sfrIdx + 1):'' }}</text>
           </view>
           <view class="action-button-wrapper">
             <!-- <button v-if="!isReadMode()" type="default" size="mini" :disabled="data.actionDisabled || data.insertDisabled" class="mini-button" @click="insertSubFormRow(sfrIdx + 1)">插入行</button> -->
@@ -36,7 +36,7 @@
         </view>
       </view>
       <view style="text-align:center;margin-top:20rpx;">
-        <button v-if="!isReadMode()" :disabled="data.actionDisabled || data.insertDisabled" class="sub-form-add-button" type="primary" size="mini" style="width:50%" @click="addSubFormRow">新增{{widget.options.itemtitle}}</button>
+        <button v-if="!isReadMode()" :disabled="data.actionDisabled || data.insertDisabled" class="sub-form-add-button" type="primary" size="mini" style="width:50%" @click="addSubFormRow">新增{{widget.options.label}}</button>
       </view>
     </view>
   </container-item-wrapper>

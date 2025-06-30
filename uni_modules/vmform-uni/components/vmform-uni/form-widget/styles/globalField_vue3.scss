@@ -183,3 +183,12 @@
   font-weight: bolder;
 }
 
+.additinal-component-item-control {
+  .picker-display{
+    text-align: right;
+  }
+  .uni-easyinput__content-input{
+    text-align:right!important;
+    height:25px;
+  }
+}
