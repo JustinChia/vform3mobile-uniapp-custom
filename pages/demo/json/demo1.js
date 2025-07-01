@@ -237,6 +237,7 @@ export const widgetList = [
           image: '',
           disabled: false,
         },
+        
       ],
       enableAdditionalOption: false,
       additionalOptionConfig: {
@@ -276,6 +277,7 @@ export const widgetList = [
       labelAlign: '',
       labelHidden: false,
       labelWidth: null,
+      desc: '单选框组件，用于在多个选项中选择一个',
       name: 'msize92125',
       onCreated: '',
       onMounted: '',
@@ -412,7 +414,7 @@ export const widgetList = [
           label: '文件设计顺序',
           value: '文件设计顺序',
           exampleImage: 'https://files.sd2000.com:9600/piscp/craft/huace/huaceshunxusilitu_%200_%201_%20202506011.jpg',
-          tooltip: '',
+          tooltip: '文件设计顺序文件设计顺序文件设计顺序文件设计顺序',
           image: '',
           disabled: false,
           hasAdditionalOption: true,
@@ -1367,6 +1369,7 @@ export const widgetList = [
                   options: [],
                   simpleOptions: [],
                 },
+                
               ],
               additionalComponentsMultiple: true,
               maxAdditionalComponents: 2,

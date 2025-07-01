@@ -1,21 +1,11 @@
 <template>
-  <form-item-wrapper
-    ref="fieldWrapper"
-    :field="field"
-    :focus="methodObjs.isFocus()"
-    :design-state="designState"
-    :parent-widget="parentWidget"
-    :parent-list="parentList"
-    :index-of-parent-list="indexOfParentList"
-    :sub-form-row-index="subFormRowIndex"
-    :sub-form-col-index="subFormColIndex"
-    :sub-form-row-id="subFormRowId"
-  >
+  <form-item-wrapper ref="fieldWrapper" :field="field" :focus="methodObjs.isFocus()" :design-state="designState" :parent-widget="parentWidget" :parent-list="parentList" :index-of-parent-list="indexOfParentList" :sub-form-row-index="subFormRowIndex" :sub-form-col-index="subFormColIndex"
+                     :sub-form-row-id="subFormRowId">
     <view class="field" :class="[inputAlignClass]">
       <view class="cascader-display" :class="{'is-placeholder': !data.fieldModel || data.fieldModel.length === 0}" @click="showPopup">
         {{ displayValue }}
       </view>
-      
+
       <!-- 右侧图标 -->
       <view class="picker-icon">
         <slot name="icon">
@@ -27,15 +17,26 @@
       {{ displayArray }}
     </template>
 
-    <uni-popup ref="fieldEditor" type="bottom" class="popup-content" background-color="#fff" border-radius="10px 10px 0 0">
-      <view class="popup-content-wrapper" style="width: 100%; max-height: 80vh">
-        <view class="title-wrapper">
-          <view class="title-action-wrapper">
-            <view class="popup-button" size="mini" @click="closePopup">取消</view>
-            <view class="popup-button" size="mini" @click="confirmSelected">确定</view>
+    <uni-popup ref="fieldEditor" type="bottom" background-color="#fff" border-radius="10px 10px 0 0">
+      <view class="popup-wrapper">
+        <!-- 标题栏 -->
+        <view class="popup-header">
+          <view class="popup-button-wrapper" style="text-align:left">
+            <uni-icons type="left" size="20" color="#333" v-if="selectedPaths.length>0" @click="changeSelectedPaths(selectedPaths[selectedPaths.length-1], selectedPaths.length-1)"></uni-icons>
+          </view>
+          <view class="popup-title">
+            <slot name="title">{{ field.options.label || '请选择' }}</slot>
+          </view>
+          <!-- 显示圆形叉号图标 -->
+          <view class="popup-button-wrapper" style="text-align:right">
+            <view class="popup-button cancel" @click="closePopup">
+              <uni-icons type="closeempty" size="13" color="#FFFFFF"></uni-icons>
+              <!-- confirmSelected -->
+            </view>
           </view>
         </view>
-        <view class="content-list-wrapper">
+
+        <view class="popup-content content-list-wrapper">
           <view class="selected-items">
             <view v-for="(item, index) in selectedPaths" :key="item.value" @click="changeSelectedPaths(item, index)">
               {{ item.label }}
@@ -55,6 +56,10 @@
             </view>
           </view>
         </view>
+      </view>
+
+      <view class="popup-button-confirm-wrapper">
+        <view class="confirm" @click="confirm">确定</view>
       </view>
     </uni-popup>
   </form-item-wrapper>
@@ -78,11 +83,11 @@ import CustomPicker from './custom-picker.vue'
 const props = defineProps({
   field: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   parentWidget: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   parentList: {
     type: Array,
@@ -94,7 +99,7 @@ const props = defineProps({
   },
   designer: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
   designState: {
     type: Boolean,
@@ -339,6 +344,7 @@ exposeObj = {
 defineExpose(exposeObj)
 </script>
 <style lang="scss" scoped>
+@import '../styles/variables.scss';
 .empty-select {
   border: solid 1px red;
   width: 100%;
@@ -368,12 +374,12 @@ defineExpose(exposeObj)
 }
 
 .is-focus .cascader-display {
-  border-color: #EEC23D;
+  border-color: $primary-color;
 }
 
 .picker-icon {
   color: #c0c4cc;
-  display:flex;
+  display: flex;
 }
 
 .field {
@@ -431,9 +437,9 @@ defineExpose(exposeObj)
 }
 
 .cascader-wrapper {
-  width:100%;
-  padding-left:10px;
-  text-align:right;
+  width: 100%;
+  padding-left: 10px;
+  text-align: right;
   &.disabled {
     opacity: 0.6;
     pointer-events: none;
@@ -448,14 +454,14 @@ defineExpose(exposeObj)
 .selected-items {
   display: flex;
   padding: 0px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: $border;
   font-size: 14px;
   color: #666;
   gap: 10px;
   align-items: center;
 
   view {
-    color: #eec23d;
+    color: $primary-color;
     cursor: pointer;
     padding: 5px 10px;
     border-radius: 4px;
@@ -480,30 +486,30 @@ defineExpose(exposeObj)
 
 .cascader-option-item {
   padding: 15px 20px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: $border;
   display: flex;
   align-items: center;
   cursor: pointer;
   transition: background-color 0.2s;
-  
+
   &:hover {
     background-color: #f8f8f8;
   }
-  
+
   &.selected {
     background-color: #e3f2fd;
-    
+
     .cascader-option-label {
-      color: #EEC23D;
+      color: $primary-color;
       font-weight: 500;
     }
   }
-  
+
   &.disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -521,52 +527,19 @@ defineExpose(exposeObj)
   font-size: 14px;
 }
 
-.popup-content {
-  // #ifndef MP-WEIXIN
-  width: 100%;
-  max-height: 80vh;
-  min-height: 20vh;
-  padding: 20rpx;
-  // #endif
-
   .popup-button {
     text-align: center;
     display: inline-block;
     color: #000000;
   }
 
-  ::v-deep .popup-content-wrapper {
-    padding: 30rpx;
-    box-sizing: border-box;
+.popup-wrapper {
 
-    .title-wrapper {
+    .popup-content.content-list-wrapper {
       width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-
-    .title-action-wrapper {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 5px;
-      uni-button {
-        margin: 0px;
-      }
-    }
-
-    .title-search-wrapper {
-      width: 100%;
-      display: block;
-      box-sizing: border-box;
-      padding: 15rpx 0;
-    }
-
-    .content-list-wrapper {
-      width: 100%;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
 
       .selected-items {
         // 选中的项目样式
@@ -574,8 +547,10 @@ defineExpose(exposeObj)
         flex-wrap: wrap;
         justify-content: flex-start;
         align-items: center;
+        padding:0px 30rpx;
         padding-bottom: 10px;
         gap: 10rpx;
+        flex:0;
 
         view {
           display: inline-block;
@@ -587,7 +562,7 @@ defineExpose(exposeObj)
             display: inline-block;
             width: 80%;
             height: 4rpx;
-            background-color: #eec23d;
+            background-color: $primary-color;
             position: absolute;
             right: 10%;
             bottom: -10rpx;
@@ -598,6 +573,8 @@ defineExpose(exposeObj)
       // 内容选择容器
       .content-select {
         position: relative;
+        overflow-y:auto;
+        flex:1;
       }
 
       // 复选框组
@@ -610,14 +587,13 @@ defineExpose(exposeObj)
 
         // 内容项
         .content-item {
-          height: 60rpx;
-          line-height: 60rpx;
+          padding: 0rpx 30rpx;
+          height: 70rpx;
+          line-height: 70rpx;
           display: flex;
           align-items: center;
-          width: 100%;
-          padding: 10rpx 0px;
           position: relative;
-          border-bottom: 1rpx solid #e6e6e6;
+          border-bottom: $border;
 
           // 复选框样式
           checkbox {
@@ -627,9 +603,6 @@ defineExpose(exposeObj)
           // 内容项标签
           &-label {
             box-sizing: border-box;
-            position: absolute;
-            left: 0;
-            top: 0;
             width: 100%;
             height: 100%;
             display: flex;
@@ -640,5 +613,4 @@ defineExpose(exposeObj)
       }
     }
   }
-}
 </style>

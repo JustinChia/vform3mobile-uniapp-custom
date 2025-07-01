@@ -107,6 +107,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/variables.scss';
 .radio-image-option-item-wrapper {
   width:100%;
 }
@@ -122,17 +123,17 @@ export default {
   flex-shrink:0;
 
   &:hover {
-    border-color: #EEC23D;
+    border-color: $primary-color;
     box-shadow: 0 4rpx 12rpx rgba(238, 194, 61, 0.2);
   }
 
   &.selected {
-    border-color: #EEC23D;
+    border-color: $primary-color;
     background-color: #fff6da;
     box-shadow: 0 4rpx 12rpx rgba(238, 194, 61, 0.3);
 
     .radio-option-title {
-      color: #EEC23D;
+      color: $primary-color;
       font-weight: 600;
     }
   }
@@ -185,7 +186,7 @@ export default {
   right: 10rpx;
   width: 40rpx;
   height: 40rpx;
-  background-color: #EEC23D;
+  background-color: $primary-color;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -218,7 +219,7 @@ export default {
 .tooltip-icon {
   width: 40rpx;
   height: 40rpx;
-  background-color: #EEC23D;
+  background-color: $primary-color;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -241,7 +242,7 @@ export default {
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
   transition: background-color 0.2s;
-  border: 1px solid #EEC23D;
+  border: 1px solid $primary-color;
 
   &:hover {
     background-color: #f0f8ff;
@@ -253,7 +254,7 @@ export default {
   background-color: #f9f9f9;
   color: #666;
   font-size: 26rpx;
-  border-left: 6rpx solid #EEC23D;
+  border-left: 6rpx solid $primary-color;
   margin-top: 10rpx;
   border-radius: 0 8rpx 8rpx 0;
   animation: slideDown 0.3s ease;

@@ -13,12 +13,18 @@
     </view>
 
     <uni-popup ref="fieldEditor" type="bottom" class="popup-content" background-color="#fff" border-radius="10px 10px 0 0">
-      <view class="popup-content-wrapper">
-        <view class="title-wrapper">
-          <view class="popup-button cancel" @click="closePopup">取消</view>
-          <view class="popup-button confirm" @click="confirmSelected">确定</view>
+      <view class="popup-wrapper">
+        <view class="popup-header">
+          <view class="popup-button-wrapper" style="text-align:left"></view>
+          <view class="popup-title">
+            <slot name="title">{{ field.options.label || '尺寸' }}</slot>
+          </view>
+          <view class="popup-button-wrapper" style="text-align:right">
+            <view class="popup-button cancel" @click="cancel">
+              <uni-icons type="closeempty" size="13" color="#FFFFFF"></uni-icons>
+            </view>
+          </view>
         </view>
-
         <view v-if="field?.options?.desc" class="popup-desc">
           {{ field.options.desc }}
         </view>
@@ -26,14 +32,14 @@
           <uni-forms ref="popupForm" :model="popupFormData" label-position="left">
             <view class="size-input-group">
               <view class="size-input-item">
-                <uni-forms-item :label="widthLabel" :labelWidth="80" name="width" :rules="widthRules">
+                <uni-forms-item :label="widthLabel" :labelWidth="80" name="width" :rules="createSizeRules('width')">
                   <view class="input-wrapper">
                     <uni-easyinput type="number" v-model="tempWidthModel" :placeholder="widthPlaceholder" :clearable="true" :inputBorder="false" @input="handleTempWidthInput" />
                   </view>
                 </uni-forms-item>
               </view>
               <view class="size-input-item">
-                <uni-forms-item :label="heightLabel" :labelWidth="80" name="height" :rules="heightRules">
+                <uni-forms-item :label="heightLabel" :labelWidth="80" name="height" :rules="createSizeRules('height')">
                   <view class="input-wrapper">
                     <uni-easyinput type="number" v-model="tempHeightModel" :placeholder="heightPlaceholder" :clearable="true" :inputBorder="false" @input="handleTempHeightInput" />
                   </view>
@@ -42,6 +48,10 @@
             </view>
           </uni-forms>
         </view>
+      </view>
+      
+      <view class="popup-button-confirm-wrapper">
+        <view class="confirm" @click="confirmSelected">确定</view>
       </view>
     </uni-popup>
 
@@ -201,114 +211,64 @@ const heightPlaceholder = computed(() => {
   return props.field?.options?.heightPlaceholder || '请输入高度';
 });
 
-// 验证规则
-const widthRules = computed(() => {
+// 通用验证规则生成函数
+const createSizeRules = (type) => {
   const rules = [];
+  const fieldName = type === 'width' ? widthLabel.value : heightLabel.value;
+  // const minKey = `${type}Min`;
+  // const maxKey = `${type}Max`;
 
   // 必填验证
-  if (props.field?.options?.widthRequired) {
+  if (props.field?.options?.required) {
     rules.push({
       required: true,
-      message: '请输入宽度',
+      errorMessage: `请输入${fieldName}`,
       trigger: ['blur', 'change']
     });
   }
 
   // 数值范围验证
-  if (props.field?.options?.widthMin !== undefined || props.field?.options?.widthMax !== undefined) {
-    const min = props.field?.options?.widthMin;
-    const max = props.field?.options?.widthMax;
-    let message = '宽度';
+  // if (props.field?.options?.[minKey] !== undefined || props.field?.options?.[maxKey] !== undefined) {
+  //   const min = props.field?.options?.[minKey];
+  //   const max = props.field?.options?.[maxKey];
+  //   let message = fieldName;
 
-    if (min !== undefined && max !== undefined) {
-      message += `必须在${min}-${max}之间`;
-    } else if (min !== undefined) {
-      message += `不能小于${min}`;
-    } else if (max !== undefined) {
-      message += `不能大于${max}`;
-    }
+  //   if (min !== undefined && max !== undefined) {
+  //     message += `必须在${min}-${max}之间`;
+  //   } else if (min !== undefined) {
+  //     message += `不能小于${min}`;
+  //   } else if (max !== undefined) {
+  //     message += `不能大于${max}`;
+  //   }
 
-    rules.push({
-      validator: (rule, value, callback) => {
-        if (value === '' || value === null || value === undefined) {
-          callback();
-          return;
-        }
-        const numValue = Number(value);
-        if (isNaN(numValue)) {
-          callback(new Error('请输入有效的数字'));
-          return;
-        }
-        if (min !== undefined && numValue < min) {
-          callback(new Error(message));
-          return;
-        }
-        if (max !== undefined && numValue > max) {
-          callback(new Error(message));
-          return;
-        }
-        callback();
-      },
-      trigger: ['blur', 'change']
-    });
-  }
-
-  return rules;
-});
-
-const heightRules = computed(() => {
-  const rules = [];
-
-  // 必填验证
-  if (props.field?.options?.heightRequired) {
-    rules.push({
-      required: true,
-      message: '请输入高度',
-      trigger: ['blur', 'change']
-    });
-  }
-
-  // 数值范围验证
-  if (props.field?.options?.heightMin !== undefined || props.field?.options?.heightMax !== undefined) {
-    const min = props.field?.options?.heightMin;
-    const max = props.field?.options?.heightMax;
-    let message = '高度';
-
-    if (min !== undefined && max !== undefined) {
-      message += `必须在${min}-${max}之间`;
-    } else if (min !== undefined) {
-      message += `不能小于${min}`;
-    } else if (max !== undefined) {
-      message += `不能大于${max}`;
-    }
-
-    rules.push({
-      validator: (rule, value, callback) => {
-        if (value === '' || value === null || value === undefined) {
-          callback();
-          return;
-        }
-        const numValue = Number(value);
-        if (isNaN(numValue)) {
-          callback(new Error('请输入有效的数字'));
-          return;
-        }
-        if (min !== undefined && numValue < min) {
-          callback(new Error(message));
-          return;
-        }
-        if (max !== undefined && numValue > max) {
-          callback(new Error(message));
-          return;
-        }
-        callback();
-      },
-      trigger: ['blur', 'change']
-    });
-  }
+  //   rules.push({
+  //     validator: (rule, value, callback) => {
+  //       if (value === '' || value === null || value === undefined) {
+  //         callback();
+  //         return;
+  //       }
+  //       const numValue = Number(value);
+  //       if (isNaN(numValue)) {
+  //         callback(new Error('请输入有效的数字'));
+  //         return;
+  //       }
+  //       if (min !== undefined && numValue < min) {
+  //         callback(new Error(message));
+  //         return;
+  //       }
+  //       if (max !== undefined && numValue > max) {
+  //         callback(new Error(message));
+  //         return;
+  //       }
+  //       callback();
+  //     },
+  //     trigger: ['blur', 'change']
+  //   });
+  // }
 
   return rules;
-});
+};
+
 // 弹窗相关方法
 const handleDisplayClick = () => {
   if (methodObjs.fieldDisabled() || methodObjs.fieldReadonly()) {
@@ -390,8 +350,7 @@ const exposeObj = {
   heightLabel,
   widthPlaceholder,
   heightPlaceholder,
-  widthRules,
-  heightRules,
+  createSizeRules,
   handleDisplayClick,
   showPopup,
   closePopup,
@@ -413,6 +372,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import '../styles/variables.scss';
 .size-input-container {
   display: flex;
   align-items: center;
@@ -420,10 +380,6 @@ export default {
   height: 60rpx;
   flex-grow: 1;
   transition: border-color 0.2s;
-
-  &:hover {
-    border-color: #c0c4cc;
-  }
 
   &.is-disabled {
     background-color: #f5f7fa;
@@ -475,10 +431,12 @@ export default {
 .popup-content-wrapper {
   width: 100%;
   max-height: 80vh;
+  .popup-content{    
+    padding:0px 30rpx;
+    box-sizing:border-box;
+  }
 }
 
-.size-input-group {
-}
 
 .size-input-item {
   display: inline-flex;
@@ -486,14 +444,15 @@ export default {
   justify-content: space-between;
   width: 100%;
 
-  :deep(.uni-forms-item){
+  :deep(.uni-forms-item) {
     width: 100%;
-    padding:10rpx 20rpx;    
+    padding: 10rpx 20rpx;
     flex: 1;
     width: 100%;
+    border-bottom:$border;
 
-    .uni-easyinput__content-input{
-      text-align:right;
+    .uni-easyinput__content-input {
+      text-align: right;
     }
   }
 }
@@ -511,7 +470,6 @@ export default {
 
 .size-readonly {
   color: #606266;
-  font-size: 14px;
   padding: 8px 0;
   min-height: 40px;
   display: flex;
@@ -523,50 +481,41 @@ export default {
   text-align: center;
   padding: 10px;
   color: #666;
-  font-size: 14px;
+  font-size: 24rpx;
 }
 
-.popup-content {
-  // #ifndef MP-WEIXIN
+::v-deep .popup-content-wrapper {
   width: 100%;
   max-height: 80vh;
-  min-height: 20vh;
-  padding: 20rpx;
-  // #endif
+  display: flex;
+  flex-direction: column;
 
-  .popup-btn {
-    color: white;
-    width: 60rpx;
+  .title-wrapper {
+    padding: 15rpx 20rpx;
     height: 45rpx;
-    flex-shrink: 0;
     display: inline-flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
+    border-bottom: $border;
 
-    &.cancel {
-      color: #666;
-    }
-
-    &.confirm {
-      color: #eec23d;
-      font-weight: 500;
-    }
-  }
-
-  ::v-deep .popup-content-wrapper {
-    width: 100%;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-
-    .title-wrapper {
-      padding: 15rpx 20rpx;
-      height: 50rpx;
+    .popup-button {
+      color: white;
+      width: 60rpx;
+      height: 45rpx;
+      flex-shrink: 0;
       display: inline-flex;
-      justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #f0f0f0;
+      justify-content: center;
+      transition: background-color 0.2s;
+
+      &.cancel {
+        color: #666;
+      }
+
+      &.confirm {
+        color: $primary-color;
+        font-weight: 500;
+      }
     }
   }
 }

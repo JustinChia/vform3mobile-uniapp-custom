@@ -78,20 +78,6 @@ export const useRender = ({ data, props, emit }) => {
       }
       return 80
     },
-    // formStyle: ()=>{
-    // 	 // #ifdef H5 || APP-PLUS
-    // 	    return `background-color: ${formConfig.value.background || '#FFFFFF'}; padding: ${(formConfig.value.padding || 0) + 'px'};--form-field-radius: ${formConfig.value.radius}px`
-    // 	 // #endif
-
-    // 	// #ifdef MP-WEIXIN
-    // 	return {
-    // 		backgroundColor: formConfig.value.background || '#FFFFFF',
-    // 		padding: (formConfig.value.padding || 0) + 'px',
-    // 		'--form-field-radius': formConfig.value.radius+'px'
-    // 	}
-    // 	// #endif
-
-    // },
     customClass: () => {
       return !!formConfig.value && !!formConfig.value.customClass ? formConfig.value.customClass : ''
     },

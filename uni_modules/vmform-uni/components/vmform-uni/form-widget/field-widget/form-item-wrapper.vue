@@ -10,22 +10,28 @@
 
 <template>
   <!-- 这个view删除后会导致验证错误 -->
-  <!-- labelWidth 强制checkbox 为100% -->
+  <!-- checkbox 强制 labelWidth 为100% labelPosition为top 在fieldMixin.js里定义的-->
   <view :class="[fieldStatusClass, methodObjs.isFocus() ? 'is-focus' : '', field.type,'label-position-'+methodObjs.labelPosition()]">
-    <uni-forms-item v-if="!field.options.hidden" ref="fieldItemRef" :label="methodObjs.fieldLabel()" :label-align="methodObjs.labelAlign()" :label-position="methodObjs.labelPosition()" 
-        :labelWidth="methodObjs.fieldLabelWidth()"
-        :name="validateName" 
-        :rules="methodObjs.getFieldRules()"
-        :required="required">
+    <uni-forms-item v-if="!field.options.hidden" ref="fieldItemRef" :label-align="methodObjs.labelAlign()" :label-position="methodObjs.labelPosition()" :labelWidth="methodObjs.fieldLabelWidth()" :name="validateName" :rules="methodObjs.getFieldRules()" :required="required">
+      <template #label>
+        <view class="field-label" :class="{required: field.options.required}">
+          <view class="label-text">{{ methodObjs.fieldLabel() }}</view>
+          <view class="label-desc" v-if="field.options.desc" @click="showDescPopup">
+            <uni-icons type="help" size="18" color="#999"></uni-icons>
+          </view>
+        </view>
+      </template>
       <!-- 需要增加label-position属性  -->
       <slot v-if="!methodObjs.isReadMode()" />
       <slot v-else name="readmode" />
     </uni-forms-item>
+
   </view>
 </template>
 <script setup>
-import { computed } from '../../utils/vueBuilder'
+import { computed, ref } from '../../utils/vueBuilder'
 import { useField } from './fieldMixin'
+
 
 const props = defineProps({
   field: {
@@ -79,6 +85,13 @@ const fieldMixin = useField({
 })
 const { data, methodObjs, fieldItemRef } = fieldMixin
 
+
+// 显示desc弹窗
+const showDescPopup = () => {
+  // 如果本地弹窗不可用，则触发全局事件
+  uni.$emit('openDescPopup', props.field)
+}
+
 const subFormName = computed(() => {
   return props.parentWidget ? props.parentWidget.options.name : ''
 })
@@ -122,7 +135,7 @@ const fieldStatusClass = computed(() => {
 
 defineExpose({
   setReadMode,
-  setRules,
+  setRules
 })
 </script>
 <script>
@@ -156,6 +169,37 @@ export default {
     }
   }
 }
+.field-label {
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 24rpx;
+  color: #999;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .label-text {
+    display: inline-block;
+  }
+  .label-desc {
+    display: inline-block;
+    z-index: 1;
+  }
+  &.required:before {
+    content: '*';
+    color: red;
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+.label-desc {
+  display: inline;
+  margin-left: 2rpx;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
 .static-content-item {
   min-height: 20px;
@@ -168,7 +212,6 @@ export default {
     margin: 0;
   }
 }
-
 .label-position-top.m-checkbox {
   .uni-forms-item {
     flex-direction: column;
@@ -181,7 +224,6 @@ export default {
   justify-content: flex-start;
   align-items: center;
 }
-
 
 // #endif
 </style>

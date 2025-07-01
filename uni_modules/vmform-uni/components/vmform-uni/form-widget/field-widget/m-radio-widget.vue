@@ -9,7 +9,7 @@
         ref="customPicker" v-model="data.fieldModel" :options="methodObjs.getOptions()"
         :disabled="methodObjs.fieldDisabled() || methodObjs.fieldReadonly()"
         :placeholder="field.options.placeholder || '请选择'" :title="field.options.title || field.options.label"
-        :multiple="false" style="width:100%"
+        :multiple="false" style="width:100%;"
         :field="field"
         :class="{ fieldReadonly: methodObjs.fieldReadonly(), 'is-focus': methodObjs.isFocus() }"
         @change="methodObjs.handleCustomPickerChange"
@@ -128,8 +128,6 @@ const closeImagePreview = () => {
   previewImageUrl.value = ''
 }
 
-
-
 var exposeObj = {}
 // #ifdef VUE3
 exposeObj = {
@@ -148,6 +146,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/variables.scss';
 .radio-display {
   padding: 10px;
   padding-right: 0px;
@@ -174,7 +173,7 @@ export default {
 }
 
 .is-focus .radio-display {
-  border-color: #EEC23D;
+  border-color: $primary-color;
 }
 
 

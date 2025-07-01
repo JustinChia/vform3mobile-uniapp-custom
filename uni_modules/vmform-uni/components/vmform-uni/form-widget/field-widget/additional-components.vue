@@ -17,7 +17,7 @@
             <view class="additinal-component-item-title" v-if="component.label">{{ component.label }}</view>
             <view class="additinal-component-item-control">
               <!-- 下拉选择 -->
-              <picker v-if="component.type === 'select'" :range="getSelectOptions(component)" range-key="label" :value="getPickerIndex(getSelectOptions(component), group[component.name])" @change="(val)=>{handleAdditionalPickerComponentChanged(group,component,val)}" class="additional-select">
+              <picker v-if="component.type === 'select'" :range="getSelectOptions(component)" range-key="label" :value="getPickerIndex(getSelectOptions(component), group[component.name])" @change="(val)=>{handleAdditionalPickerComponentChanged(groupIndex,component,val)}" class="additional-select">
                 <view class="picker-display">
                   <text v-if="getPickerDisplayText(getSelectOptions(component), group[component.name])" class="picker-value">
                     {{ getPickerDisplayText(getSelectOptions(component), group[component.name]) }}
@@ -169,8 +169,15 @@ const createEmptyGroup = () => {
   return group
 }
 
-const handleAdditionalPickerComponentChanged = (group, component, val) => {
-  group[component.name] = getSelectOptions(component)[val.detail.value].value
+// 处理附加组件选择器组件值变化
+// @param {number} groupIndex - 组索引
+// @param {Object} component - 组件对象
+// @param {Event} val - 事件对象，包含选择器的索引值
+const handleAdditionalPickerComponentChanged = (groupIndex, component, val) => {
+  if (additionalData.value[groupIndex]!=undefined) {
+    additionalData.value[groupIndex][component.name] = getSelectOptions(component)[val.detail.value].value
+    emitAdditionalUpdate()
+  }
 }
 
 // 构建选择值对象
@@ -482,9 +489,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/variables.scss';
 .additional-components {
   padding: 5rpx 10rpx;
-  border-top: 1px solid #eee;
+  border-top: $border;
   animation: slideDown 0.3s ease;
 }
 
@@ -503,8 +511,8 @@ export default {
   align-items: center;
   height:70rpx;
   padding-left:20rpx;
-  border-left: 3px solid #eec23d;
-  border-bottom: 1px solid #f0f0f0;
+  border-left: 3px solid $primary-color;
+  border-bottom: $border;
 }
 
 .group-title {
@@ -531,7 +539,13 @@ export default {
     margin-bottom: 0;
   }
 
-  :deep(.uni-forms-item){
+  :deep(.uni-forms-item){    
+    padding: 0rpx 30rpx;
+    height: 80rpx;
+    flex-direction:row!important;
+    border-bottom: $border;
+    border-top:none 0px!important;
+
     .uni-forms-item__error{
       width:100%;
       text-align:right;
@@ -582,7 +596,7 @@ export default {
 .add-group-btn {
   margin-top: 10px;
   padding: 8px 15px;
-  background-color: #eec23d;
+  background-color: $primary-color;
   color: white;
   border-radius: 4px;
   text-align: center;
@@ -636,16 +650,5 @@ export default {
   margin-left: 5px;
   font-size: 14px;
   color: #333;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>

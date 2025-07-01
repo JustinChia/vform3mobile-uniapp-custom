@@ -83,27 +83,22 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/variables.scss';
 .radio-option-item-wrapper {
-  border-bottom: 1rpx solid rgb(230, 230, 230);
+  border-bottom: $border;
 }
 
 .radio-option-item {
-  padding: 15rpx 20px;
+  padding: 0rpx 30rpx;
+  height: 70rpx;
   display: flex;
   align-items: center;
   cursor: pointer;
   transition: background-color 0.2s;
   text-align: left;
-
-  &:hover {
-    background-color: #fff6da;
-  }
-
   &.selected {
-    background-color: #fff6da;
-
     .radio-option-label {
-      color: #EEC23D;
+      color: $primary-color;
       font-weight: 500;
     }
   }
@@ -129,7 +124,7 @@ export default {
 .tooltip-icon {
   width: 20px;
   height: 20px;
-  background-color: #EEC23D;
+  background-color: $primary-color;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -139,23 +134,15 @@ export default {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #0056b3;
-  }
 }
 
 .example-image-btn {
-  color:  #FED752;
+  color:  #6D98D6;
   font-size: 14px;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
   transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f0f8ff;
-  }
 }
 
 .tooltip-content {
@@ -163,18 +150,8 @@ export default {
   background-color: #f9f9f9;
   color: #666;
   font-size: 14px;
-  border-left: 3px solid #eec23d;
+  border-left: 3px solid $primary-color;
   animation: slideDown 0.3s ease;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 </style>

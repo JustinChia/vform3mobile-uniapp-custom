@@ -151,6 +151,11 @@ export function useField({ componentType, widgetData, props, actions, emit }) {
     },
 
     labelPosition: () => {
+      
+      if(props.field.type=='m-checkbox'){
+        return 'top'
+      }
+
       if (props.field.options.labelPosition) {
         return props.field.options.labelPosition
       }

@@ -1,9 +1,9 @@
 <template>
   <form-item-wrapper ref="fieldWrapper" :field="field" :design-state="designState" :parent-widget="parentWidget" :parent-list="parentList" :index-of-parent-list="indexOfParentList" :sub-form-row-index="subFormRowIndex" :sub-form-col-index="subFormColIndex" :sub-form-row-id="subFormRowId">
     <!-- 按钮显示模式 -->
-    <view class="field" :class="[inputAlignClass]">
+    <view class="field">
       <view class="checkbox-buttons-container">
-         <view v-for="(option, index) in getOptionAdditionList()" :key="index" class="checkbox-button-wrapper">
+        <view v-for="(option, index) in getOptionAdditionList()" :key="index" class="checkbox-button-wrapper">
           <template v-if="option.optionType=='checkbox'">
             <!-- 如果没有选择 -->
             <view class="checkbox-button" :class="{ 
@@ -19,12 +19,12 @@
             </view>
           </template>
           <template v-else-if="option.optionType=='add-button'">
-           <view class="checkbox-button add-button" @click="handleAddButtonClick(option)">
+            <view class="checkbox-button add-button" @click="handleAddButtonClick(option)">
               <uni-icons type="plusempty" size="14" color="#eec23d"></uni-icons>新增{{ option.text }}
             </view>
-            </template>
+          </template>
 
-         </view>
+        </view>
       </view>
     </view>
 
@@ -34,15 +34,7 @@
       </view>
     </template>
 
-    <!-- 弹出tooltip信息 -->
-    <view class="tooltip-overlay" :class="{'show': tooltipPopupVisible}" v-if="tooltipPopupVisible" @click="closeTooltipPopup">
-      <view class="tooltip-dialog">
-        <view class="tooltip-content" v-if="currentOption?.tooltip">{{ currentOption?.tooltip }}</view>
-        <view class="tooltip-content" v-if="currentOption?.exampleImage">
-          <image :src="currentOption?.exampleImage" mode="widthFix" style="width: 100%;" />
-        </view>
-      </view>
-    </view>
+    <!-- tooltip弹窗已移动到form-render/index.vue -->
 
     <!-- 确认操作弹窗 -->
     <uni-popup ref="confirmPopup" type="center" background-color="#fff" border-radius="20rpx">
@@ -58,27 +50,23 @@
 
     <!-- 附加组件弹窗 -->
     <uni-popup ref="additionalPopup" type="bottom" background-color="#fff" border-radius="10px 10px 0 0">
-      <view class="additional-popup-wrapper">
+      <view class="popup-wrapper additional-popup-wrapper">
+         <!-- 标题栏 -->
         <view class="popup-header">
-          <view style="width:160rpx;">
-            <view class="popup-btn cancel" @click="cancelAdditional">取消</view>
+          <view class="popup-button-wrapper" style="text-align:left">
+            <text v-if="currentOption?.exampleImage" class="example-image-btn" @click="showImagePreview(currentOption.exampleImage)">示例图</text>
           </view>
           <view class="popup-title">
-            <view class="title-content">
-              <view class="option-text">{{ currentOption?.text || '附加信息' }}</view>
-              <view v-if="currentOption?.exampleImage" class="example-image-btn" @click="showImagePreview(currentOption.exampleImage)">示例图</view>
-            </view>
+            <slot name="title">{{ currentOption?.text || '附加信息' }}</slot>
           </view>
           <!-- 显示圆形叉号图标 -->
-          <!-- <view style="width:160rpx;text-align:right;">
-            <view class="popup-btn cancel" @click="confirmAdditional">
-              <uni-icons type="closeempty" size="14" color="#FFFFFF"></uni-icons>
+          <view class="popup-button-wrapper" style="text-align:right">
+            <view class="popup-button cancel" @click="cancelAdditional">
+              <uni-icons type="closeempty" size="13" color="#FFFFFF"></uni-icons>
             </view>
-          </view> -->
-          <view style="width:160rpx;text-align:right;">
-            <view class="popup-btn confirm" @click="confirmAdditional">确定</view>
           </view>
         </view>
+
 
         <view v-if="currentOption?.tooltip" class="popup-desc">
           {{currentOption?.tooltip}}
@@ -89,16 +77,14 @@
             <additional-components v-if="currentOption" :item="currentOption" :selected-value="getSelectedValueForOption(currentOption.value)" :additional-expanded="true" :edit-index="currentEditIndex" :allow-add-additional="false" @update-additional="updateAdditionalData" />
           </uni-forms>
         </view>
+        
+      </view>
+      <view class="popup-button-confirm-wrapper">
+        <view class="confirm" @click="confirmAdditional">确定</view>
       </view>
     </uni-popup>
 
-    <!-- 图片预览弹窗 -->
-    <view v-if="imagePreviewVisible" class="image-preview-modal" @click="closeImagePreview">
-      <image :src="previewImageUrl" mode="widthFix" style="height:80vw;border-radius:16rpx;" />
-      <view class="close-btn" @click="closeImagePreview">
-        <uni-icons type="closeempty" size="18" color="#FFFFFF"></uni-icons>
-      </view>
-    </view>
+    <!-- 图片预览弹窗已移动到form-render/index.vue -->
   </form-item-wrapper>
 </template>
 <script setup>
@@ -164,17 +150,12 @@ const mode = computed(() => {
 
 // 附加组件相关状态
 const additionalPopup = ref(null)
-const tooltipPopupVisible = ref(false)
 const confirmPopup = ref(null)
 const popupForm = ref(null)
 const currentOption = ref(null)
 const tempAdditionalData = ref(null)
 // 当前编辑的数组项索引，-1表示编辑整个数组（兼容模式）
 const currentEditIndex = ref(-1)
-
-// 图片预览相关状态
-const imagePreviewVisible = ref(false)
-const previewImageUrl = ref('')
 
 // 存储每个选项的附加数据
 const additionalDataMap = ref(new Map())
@@ -202,7 +183,7 @@ const isSelected = (value) => {
 // 检查是否需要合并显示尺寸信息
 const shouldCombineDimensions = (keys) => {
   return (keys.some(x => x.includes('long')) && keys.some(x => x.includes('short'))) ||
-         (keys.some(x => x.includes('width')) && keys.some(x => x.includes('height')))
+    (keys.some(x => x.includes('width')) && keys.some(x => x.includes('height')))
 }
 
 // 处理尺寸合并显示
@@ -210,31 +191,31 @@ const processDimensionDisplay = (component, additionalItem, keys) => {
   if (!component.name.includes('long') && !component.name.includes('width')) {
     return null
   }
-  
+
   const longOrWidth = additionalItem[component.name] || ''
-  const shortOrHeight = keys.find(key => 
+  const shortOrHeight = keys.find(key =>
     key.includes('short') || key.includes('height')
   )
   const shortValue = shortOrHeight ? additionalItem[shortOrHeight] || '' : ''
-  
-  return longOrWidth || shortValue ? 
+
+  return longOrWidth || shortValue ?
     `${longOrWidth}${longOrWidth && shortValue ? '*' : ''}${shortValue}` : null
 }
 
 // 处理组件显示值
 const getComponentDisplayValue = (component, fieldValue, additionalItem, keys, combineDisplay) => {
   if (!fieldValue && fieldValue !== 0) return null
-  
+
   switch (component.type) {
     case 'select':
     case 'radio':
       const option = component.options?.find(x => x.value == fieldValue)
       return option?.label || null
-      
+
     case 'checkbox':
       const options = component.options?.filter(x => x.value == fieldValue)
       return options?.length > 0 ? `${options[0].label}等${options.length}个` : null
-      
+
     default:
       if (combineDisplay) {
         return processDimensionDisplay(component, additionalItem, keys)
@@ -245,16 +226,17 @@ const getComponentDisplayValue = (component, fieldValue, additionalItem, keys, c
 
 // 获取选项的附加信息显示文本
 const getAdditionalInfo = (value, additionalComponents, additionalItem) => {
+  console.error('getAdditionalInfo', value, additionalComponents, additionalItem)
   if (!additionalItem || !additionalComponents?.length) return null
-  
+
   const keys = Object.keys(additionalItem)
   const combineDisplay = shouldCombineDimensions(keys)
   const displayItems = []
-  
+
   additionalComponents.forEach(component => {
     const fieldValue = additionalItem[component.name]
     const displayValue = getComponentDisplayValue(component, fieldValue, additionalItem, keys, combineDisplay)
-    
+
     if (displayValue) {
       displayItems.push(displayValue)
     }
@@ -270,7 +252,14 @@ const getOptionAdditionList = () => {
 
     // 1. 生成基于选项和其附加数据的 "checkbox" 列表
     // 如果没有附加数据，则创建一个包含 null 的数组以确保至少生成一个基础的 checkbox 项
-    const baseItems = (additionalData && additionalData.length > 0) ? additionalData : [null];
+    let baseItems;
+    if(additionalData && Array.isArray(additionalData) && additionalData.length>0){
+      baseItems = additionalData;
+    }else if(additionalData && !Array.isArray(additionalData)){
+      baseItems = [additionalData];
+    }else{
+      baseItems = [null];
+    }
     const checkboxItems = baseItems.map((additialItem, additinalIndex) => {
       const item = {
         ...option,
@@ -311,12 +300,8 @@ const isOptionDisabled = (option) => {
 
 // 显示提示信息
 const showTooltipIfNeeded = (option) => {
-  if ((option.tooltip || option.exampleImage) && !isSelected(option.value)) {
-    currentOption.value = option
-    tooltipPopupVisible.value = true
-    setTimeout(() => {
-      tooltipPopupVisible.value = false
-    }, 5000)
+  if ((option.tooltip || option.exampleImage) && !isSelected(option.value) && option.showTooltip) {
+    uni.$emit('openTooltipPopup', option)
     return true
   }
   return false
@@ -339,7 +324,7 @@ const handleAdditionalComponentOption = (option) => {
     currentEditIndex.value = -1  // 重置为兼容模式
 
     const item = findItemByValue(option.value)
-    const existingData = item?.additional ? 
+    const existingData = item?.additional ?
       { value: option.value, additional: item.additional } :
       additionalDataMap.value.get(option.value)
 
@@ -351,10 +336,11 @@ const handleAdditionalComponentOption = (option) => {
 
 // 处理按钮点击
 const handleButtonClick = (option) => {
+  debugger
   if (isOptionDisabled(option)) return
 
   // 处理编辑附加项
-  if (option.additinalIndex !== undefined) {
+  if (option.additinalIndex !== undefined && option.additionalComponentsMultiple==true && option.autoShowTooltip) {
     handleEditAdditionalItem(option, option.additinalIndex)
     return
   }
@@ -390,23 +376,23 @@ const updateFieldModel = (newValues) => {
 const handleAddButtonClick = (option) => {
   const currentValues = normalizeFieldModel()
   const index = currentValues.findIndex(item => item.value === option.value)
-  
+
   if (index < 0) return
-  
+
   // 确保additional数组存在
   currentValues[index].additional = currentValues[index].additional || []
-  
+
   // 创建并添加新项
   const newItem = createNewAdditionalItem(option.additionalComponents)
   currentValues[index].additional.push(newItem)
-  
+
   // 更新数据模型
   updateFieldModel(currentValues)
-  
+
   // 设置编辑状态
   currentOption.value = option
   currentEditIndex.value = currentValues[index].additional.length - 1
-  
+
   // 打开编辑弹窗
   const editData = {
     value: option.value,
@@ -442,9 +428,9 @@ const toggleSelection = (value) => {
   } else {
     // 选中
     const additionalData = additionalDataMap.value.get(value)
-    const newItem = { 
-      value, 
-      ...(additionalData?.additional && { additional: additionalData.additional }) 
+    const newItem = {
+      value,
+      ...(additionalData?.additional && { additional: additionalData.additional })
     }
     currentValues.push(newItem)
   }
@@ -470,6 +456,7 @@ const confirmAdditional = async () => {
       return
     }
 
+    debugger
     const optionValue = currentOption.value.value
     additionalDataMap.value.set(optionValue, tempAdditionalData.value)
 
@@ -477,9 +464,9 @@ const confirmAdditional = async () => {
     const existingIndex = currentValues.findIndex(item => item.value === optionValue)
 
     // 构建新项数据（简化逻辑，两种模式处理方式相同）
-    const newItem = { 
-      value: optionValue, 
-      additional: tempAdditionalData.value.additional 
+    const newItem = {
+      value: optionValue,
+      additional: tempAdditionalData.value.additional
     }
 
     // 更新或添加项
@@ -511,10 +498,10 @@ const closeAdditionalPopup = () => {
 
 // 打开附加组件弹窗
 const openAdditionalPopup = (existingData) => {
-  tempAdditionalData.value = existingData ? 
-    JSON.parse(JSON.stringify(existingData)) : 
+  tempAdditionalData.value = existingData ?
+    JSON.parse(JSON.stringify(existingData)) :
     { value: currentOption.value.value }
-  
+
   additionalPopup.value?.open()
 }
 
@@ -554,8 +541,8 @@ const clearSpecificAdditionalData = () => {
   const currentValues = normalizeFieldModel()
   const valueIndex = currentValues.findIndex(item => item.value === optionValue)
 
-  if (valueIndex < 0 || !currentValues[valueIndex].additional || 
-      !currentValues[valueIndex].additional[currentEditIndex.value]) {
+  if (valueIndex < 0 || !currentValues[valueIndex].additional ||
+    !currentValues[valueIndex].additional[currentEditIndex.value]) {
     closeConfirmPopup()
     return
   }
@@ -583,7 +570,7 @@ const clearSpecificAdditionalData = () => {
 // 获取现有编辑数据
 const getExistingEditData = (optionValue) => {
   const item = findItemByValue(optionValue)
-  return item?.additional ? 
+  return item?.additional ?
     { value: optionValue, additional: item.additional } :
     additionalDataMap.value.get(optionValue)
 }
@@ -598,8 +585,8 @@ const editSpecificAdditionalData = () => {
   const currentValues = normalizeFieldModel()
   const valueIndex = currentValues.findIndex(item => item.value === currentOption.value.value)
 
-  if (valueIndex < 0 || !currentValues[valueIndex].additional || 
-      !currentValues[valueIndex].additional[currentEditIndex.value]) {
+  if (valueIndex < 0 || !currentValues[valueIndex].additional ||
+    !currentValues[valueIndex].additional[currentEditIndex.value]) {
     closeConfirmPopup()
     return
   }
@@ -629,19 +616,7 @@ const editAdditionalData = () => {
 
 // 图片预览相关函数
 const showImagePreview = (imageUrl) => {
-  previewImageUrl.value = imageUrl
-  imagePreviewVisible.value = true
-}
-
-const closeImagePreview = () => {
-  imagePreviewVisible.value = false
-  previewImageUrl.value = ''
-}
-
-// 关闭tooltip弹窗
-const closeTooltipPopup = () => {
-  tooltipPopupVisible.value = false
-  currentOption.value = null
+  uni.$emit('openImagePreview', imageUrl)
 }
 
 // 取消附加组件编辑
@@ -670,6 +645,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/variables.scss';
 .checkbox-buttons-container {
   display: flex;
   flex-wrap: wrap;
@@ -687,12 +663,15 @@ export default {
   flex-wrap: wrap;
   gap: 8rpx;
   align-items: center;
+  min-width: 24%;
+  max-width: 50%;
+  flex-grow: 1;
 }
 .checkbox-button {
   flex: 0 0 auto;
-  min-width: 150rpx;
-  max-width: 260rpx;
+  width: 100%;
   padding: 10rpx 14rpx;
+  box-sizing: border-box;
   overflow: hidden;
   border: 2rpx solid #e0e0e0;
   border-radius: 12rpx;
@@ -700,13 +679,13 @@ export default {
   transition: all 0.3s ease;
 
   // &:hover:not(.disabled) {
-  //   border-color: #eec23d;
+  //   border-color: $primary-color;
   //   background-color: #fff6da;
   // }
 
   &.selected {
-    border-color: #eec23d;
-    background-color: #eec23d;
+    border-color: $primary-color;
+    background-color: $primary-color;
 
     .option-name {
       color: #fff6da;
@@ -719,7 +698,7 @@ export default {
     cursor: not-allowed;
     background-color: #f5f5f5;
     .option-name {
-      color:#333;
+      color: #333;
       font-weight: 600;
     }
   }
@@ -729,10 +708,10 @@ export default {
     align-items: center;
     justify-content: center;
     text-align: center;
-    height: 60rpx;
+    height: 80rpx;
     line-height: 1;
     border: dashed #eec23d 2rpx;
-    color: #eec23d;
+    color: $primary-color;
     uni-icons {
       flex-shrink: 0;
       display: flex;
@@ -787,7 +766,7 @@ export default {
 .edit-btn {
   flex-shrink: 0;
   font-size: 22rpx;
-  color: #EEC23D;
+  color: $primary-color;
   padding: 2rpx 6rpx;
   border-radius: 4rpx;
   background-color: rgba(0, 122, 255, 0.1);
@@ -798,98 +777,7 @@ export default {
   background-color: rgba(0, 122, 255, 0.2);
 }
 
-.additional-popup-wrapper {
-  max-height: 80vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.popup-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.popup-actions {
-  display: flex;
-  gap: 16px;
-}
-
-.popup-btn {
-  color: white;
-  width: 60rpx;
-  height: 45rpx;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-
-  &.cancel {
-    color: #666;
-  }
-
-  &.confirm {
-    color: #EEC23D;
-    font-weight: 500;
-  }
-}
-
-.popup-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.tooltip-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  /* background-color: rgba(0, 0, 0, 0.7); */ /* 移除遮罩层背景 */
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* 从顶部开始对齐 */
-  z-index: 9999;
-  padding-top: 40rpx; /* 距离顶部40rpx */
-  pointer-events: none; /* 允许点击穿透 */
-}
-
-.tooltip-dialog {
-  width: 70%; /* 宽度为屏幕的70% */
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 20rpx;
-  padding: 20rpx;
-  color: #fff;
-  font-size: 28rpx;
-  line-height: 1.5;
-  box-sizing: border-box;
-  transform: translateY(-100%); /* 初始状态在屏幕上方 */
-  transition: transform 0.3s ease-out; /* 添加过渡效果 */
-  pointer-events: auto; /* 恢复点击事件 */
-}
-
-.tooltip-overlay.show .tooltip-dialog {
-  transform: translateY(0); /* 显示时滑入 */
-}
-
-.tooltip-content {
-  margin-bottom: 10rpx;
-}
-
-.tooltip-content:last-child {
-  margin-bottom: 0;
-}
+/* tooltip样式已移动到form-render/index.vue */
 .confirm-dialog {
   background-color: #fff;
   border-radius: 12px;
@@ -931,40 +819,14 @@ export default {
   flex: 1;
 }
 
-.image-preview-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  width: 30px;
-  height: 30px;
-  background-color: rgba(128, 128, 128, 0.5);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
+/* 图片预览样式已移动到form-render/index.vue */
 
 .selected-values {
   margin-top: 16rpx;
   padding: 12rpx 16rpx;
   background-color: #f8f9fa;
   border-radius: 8rpx;
-  border-left: 4rpx solid #EEC23D;
+  border-left: 4rpx solid $primary-color;
 }
 
 .selected-label {
