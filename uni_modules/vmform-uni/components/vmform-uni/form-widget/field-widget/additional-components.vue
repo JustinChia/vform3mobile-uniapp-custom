@@ -11,7 +11,7 @@
       </view>
 
       <view v-for="(component, compIndex) in item.additionalComponents" :key="compIndex" class="additional-component-item">
-        <uni-forms-item :name="['picker','additional',editComponentIndex(groupIndex),component.name]" :rules="buildValidationRules(component)">
+        <uni-forms-item :name="buildName(groupIndex, component.name)" :rules="buildValidationRules(component)">
           <template #label></template>
           <view class="additinal-component-item-wrapper">
             <view class="additinal-component-item-title" v-if="component.label">{{ component.label }}</view>
@@ -110,8 +110,21 @@ const emit = defineEmits(['update-additional'])
 // 每个组对象的key为组件的id，value为用户输入的值
 const additionalData = ref([])
 
+// 编辑数组的第groupIndex个元素，
 const editComponentIndex = (groupIndex)=>{
   return groupIndex+( props.editIndex <0 ? 0: props.editIndex)
+}
+
+// 构建name数组
+// @param {number} groupIndex - 组索引
+// @param {string} componentName - 组件名称
+// @returns {Array} name数组
+const buildName = (groupIndex, componentName) => {
+  if (props.item.additionalComponentsMultiple) {
+    return ['picker', 'additional', editComponentIndex(groupIndex), componentName]
+  } else {
+    return ['picker', 'additional', componentName]
+  }
 }
 
 // 计算属性
